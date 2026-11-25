@@ -1,0 +1,1886 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#090d16" id="metaThemeColor">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="application-name" content="srt notes">
+    <meta name="apple-mobile-web-app-title" content="srt notes">
+    <title>srt notes</title>
+    <link id="pwaManifest" rel="manifest" href="">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior-y: none;
+        }
+
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.28); border-radius: 999px; }
+
+        /* 1x1 cm (48x48 px) Android Launcher İkonu */
+        .app-icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 15px;
+            box-shadow: 0 6px 14px -3px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+        }
+
+        /* Ağaç bağlantı çizgisi */
+        .tree-branch {
+            position: relative;
+        }
+        .tree-branch::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 10px;
+            left: -11px;
+            width: 2px;
+            background: linear-gradient(to bottom, rgba(99, 102, 241, 0.4), rgba(148, 163, 184, 0.15));
+            border-radius: 999px;
+        }
+
+        /* Dokunma tepkisi */
+        .tap-scale {
+            transition: transform 0.13s cubic-bezier(0.2, 0, 0, 1), opacity 0.15s ease;
+        }
+        .tap-scale:active {
+            transform: scale(0.93);
+        }
+
+        /* Bottom Sheet animasyonu */
+        @keyframes sheetUp {
+            from { transform: translateY(100%); opacity: 0.6; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .animate-sheet {
+            animation: sheetUp 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .pb-safe {
+            padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+        }
+    </style>
+</head>
+<body class="bg-slate-200 text-slate-900 dark:bg-[#060910] dark:text-slate-100 min-h-screen flex justify-center selection:bg-indigo-500 selection:text-white transition-colors duration-200">
+
+    <!-- Mobil Uygulama Kabuğu (App Shell) -->
+    <div class="w-full max-w-md min-h-screen bg-slate-50 dark:bg-[#0b101b] sm:border-x sm:border-slate-300/70 sm:dark:border-slate-800/80 flex flex-col relative shadow-2xl overflow-x-hidden">
+
+        <!-- ========================================================= -->
+        <!-- EKRAN 1: ANA EKRAN (ANDROID LAUNCHER İKON IZGARASI)       -->
+        <!-- ========================================================= -->
+        <div id="homeScreen" class="flex-1 flex flex-col">
+            <!-- Üst Uygulama Çubuğu -->
+            <header class="sticky top-0 z-30 bg-slate-50/90 dark:bg-[#0b101b]/90 backdrop-blur-xl px-4 pt-3.5 pb-2.5 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white font-extrabold text-xs shadow-sm">
+                        srt
+                    </div>
+                    <h1 class="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white">srt notes</h1>
+                </div>
+
+                <div class="flex items-center gap-1.5">
+                    <!-- Global Arama -->
+                    <button onclick="openGlobalSearch()" title="Tüm Notlarda Ara" class="tap-scale w-9 h-9 rounded-full bg-white dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700/70 flex items-center justify-center shadow-2xs">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </button>
+
+                    <!-- Tema Değiştir -->
+                    <button onclick="toggleTheme()" title="Tema Değiştir" class="tap-scale w-9 h-9 rounded-full bg-white dark:bg-slate-800/90 text-slate-700 dark:text-amber-400 border border-slate-200/80 dark:border-slate-700/70 flex items-center justify-center shadow-2xs">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 hidden dark:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 block dark:hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+                    </button>
+
+                    <!-- Ayarlar / Yedek / APK -->
+                    <button onclick="openSettingsSheet()" title="Ayarlar ve Yedekleme" class="tap-scale w-9 h-9 rounded-full bg-white dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700/70 flex items-center justify-center shadow-2xs">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- 4'lü Kompakt İkon Izgarası (Başlıksız, Çizgisiz, Sabitlenenler 📌 + A-Z) -->
+            <main class="flex-1 px-4 pt-3 pb-28 overflow-y-auto">
+                <div id="launcherGrid" class="grid grid-cols-4 gap-x-2.5 gap-y-5"></div>
+
+                <!-- Boş Ana Ekran -->
+                <div id="homeEmptyState" class="hidden text-center py-20 px-6">
+                    <div class="w-14 h-14 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto mb-3 text-2xl">📱</div>
+                    <p class="text-sm font-bold text-slate-800 dark:text-slate-200">Henüz konu ikonu yok</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Sağ alttaki <strong>+</strong> butonuna dokunarak ilk ana başlığını oluştur.</p>
+                </div>
+            </main>
+
+            <!-- Alt Sabit Bar: Hızlı Karalama Kutusu + Yeni Konu (+) Butonu -->
+            <div class="fixed bottom-0 z-30 w-full max-w-md px-3.5 pt-2 pb-safe bg-gradient-to-t from-slate-50 via-slate-50/95 to-transparent dark:from-[#0b101b] dark:via-[#0b101b]/95">
+                <div class="flex items-center gap-2.5">
+                    <!-- Hızlı Karalama Çubuğu -->
+                    <button onclick="openScratchpadSheet()" class="tap-scale flex-1 h-12 px-3.5 rounded-2xl bg-white dark:bg-[#151e32] border border-slate-200/90 dark:border-slate-800 shadow-lg shadow-slate-900/5 dark:shadow-black/40 flex items-center justify-between gap-2 text-left">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <span class="text-base shrink-0">📝</span>
+                            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 truncate">Hızlı karalama notu at...</span>
+                        </div>
+                        <span id="scratchpadBadge" class="hidden px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-amber-500 text-white shrink-0">0</span>
+                    </button>
+
+                    <!-- Yeni Ana Konu Ekle (+) -->
+                    <button onclick="openTopicModal(null)" title="Yeni Konu Ekle" class="tap-scale w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-600/35 flex items-center justify-center shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- EKRAN 2: KONU DETAY & HİYERARŞİK AĞAÇ GÖRÜNÜMÜ            -->
+        <!-- ========================================================= -->
+        <div id="topicDetailScreen" class="hidden flex-1 flex-col">
+            <!-- Üst Başlık Çubuğu -->
+            <header class="sticky top-0 z-30 bg-white/95 dark:bg-[#101726]/95 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800/80 px-3 pt-3 pb-2.5">
+                <div class="flex items-center justify-between gap-2">
+                    <!-- Geri Butonu + Konu İkon & Adı -->
+                    <div class="flex items-center gap-2 min-w-0">
+                        <button onclick="goHome()" class="tap-scale w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                        </button>
+                        <div id="detailTopicIcon" class="w-8 h-8 rounded-xl flex items-center justify-center text-base shrink-0 shadow-xs"></div>
+                        <div class="min-w-0">
+                            <h2 id="detailTopicTitle" class="text-base font-extrabold text-slate-900 dark:text-white truncate">Konu</h2>
+                            <p id="detailTopicSub" class="text-[11px] text-slate-500 dark:text-slate-400 truncate">0 alt başlık</p>
+                        </div>
+                    </div>
+
+                    <!-- Sağ Eylemler: Sabitle, Konuyu Düzenle, Paylaş, Tümünü Aç/Kapat -->
+                    <div class="flex items-center gap-1 shrink-0">
+                        <button id="detailPinBtn" onclick="toggleCurrentTopicPin()" title="Ana Ekrana Sabitle" class="tap-scale w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-sm">
+                            📌
+                        </button>
+                        <button onclick="openTopicModal(currentTopicId)" title="Konu İkonunu/Adını Düzenle" class="tap-scale w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </button>
+                        <button onclick="shareEntireTopic()" title="Tüm Konuyu Paylaş" class="tap-scale w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                        </button>
+                        <button onclick="toggleAllInTopic()" id="detailToggleAllBtn" title="Tümünü Aç / Kapat" class="tap-scale h-8 px-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-[11px] font-bold text-indigo-600 dark:text-indigo-400">
+                            Aç
+                        </button>
+                    </div>
+                </div>
+
+                <!-- YOL HARİTASI (BREADCRUMB ÇUBUĞU) -->
+                <div id="breadcrumbBar" class="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-1 overflow-x-auto text-[11px] font-semibold text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                    <!-- Dinamik olarak doldurulur -->
+                </div>
+            </header>
+
+            <!-- Hiyerarşik Alt Başlık Ağacı -->
+            <main class="flex-1 px-3.5 pt-3.5 pb-28 overflow-y-auto">
+                <!-- Konu Açıklaması (Varsa) -->
+                <div id="detailTopicDescBox" class="hidden mb-3 px-3.5 py-2.5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-200/60 dark:border-indigo-800/40 text-xs text-slate-700 dark:text-slate-300 leading-relaxed"></div>
+
+                <div id="subTreeContainer" class="space-y-2.5"></div>
+
+                <!-- Alt Başlık Yoksa Boş Durum -->
+                <div id="topicEmptyState" class="hidden text-center py-14 px-5 bg-white dark:bg-[#121a2c] rounded-3xl border border-slate-200/80 dark:border-slate-800/80 mt-2">
+                    <div class="text-3xl mb-2">📂</div>
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-white">Bu konuda henüz alt başlık yok</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Alttaki <strong>+ Alt Başlık Ekle</strong> butonuyla madde, açıklama, link veya görsel ekleyebilirsin.</p>
+                </div>
+            </main>
+
+            <!-- Alt Eylem Çubuğu: Alt Başlık Ekle -->
+            <div class="fixed bottom-0 z-30 w-full max-w-md px-4 pt-2 pb-safe bg-gradient-to-t from-slate-50 via-slate-50/95 to-transparent dark:from-[#0b101b] dark:via-[#0b101b]/95 flex items-center justify-between gap-2">
+                <button onclick="openDeleteTopicModal()" class="tap-scale h-11 px-3.5 rounded-2xl bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400 text-xs font-bold flex items-center gap-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    <span>Konuyu Sil</span>
+                </button>
+
+                <button onclick="openNodeModal(null, 'add')" class="tap-scale flex-1 h-11 px-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    <span>Alt Başlık Ekle</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- BOTTOM SHEET 1: ANA KONU OLUŞTUR / DÜZENLE (AKILLI İKON)  -->
+        <!-- ========================================================= -->
+        <div id="topicModal" onclick="if(event.target===this) closeTopicModal()" class="fixed inset-0 z-50 hidden items-end justify-center bg-slate-950/60 backdrop-blur-xs">
+            <div class="animate-sheet bg-white dark:bg-[#131b2e] w-full max-w-md rounded-t-[28px] border-t border-slate-200 dark:border-slate-800 p-5 pb-safe max-h-[90vh] overflow-y-auto">
+                <div class="w-10 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto mb-4"></div>
+
+                <div class="flex items-center justify-between mb-4">
+                    <h3 id="topicModalHeading" class="text-base font-extrabold text-slate-900 dark:text-white">Yeni Konu İkonu</h3>
+                    <button onclick="closeTopicModal()" class="tap-scale p-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500">✕</button>
+                </div>
+
+                <!-- Canlı İkon Önizleme (1x1 cm Launcher Görünümü) -->
+                <div class="flex flex-col items-center justify-center py-3 mb-4 rounded-2xl bg-slate-100/80 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/50">
+                    <div class="relative">
+                        <div id="topicPreviewIconBox" class="app-icon-box bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-2xl text-white overflow-hidden">
+                            📁
+                        </div>
+                        <span id="topicPreviewPin" class="hidden absolute -top-1.5 -right-1.5 text-xs drop-shadow">📌</span>
+                    </div>
+                    <span id="topicPreviewLabel" class="mt-2 text-xs font-bold text-slate-800 dark:text-slate-200">Yeni Konu</span>
+                    <span class="text-[10px] text-indigo-600 dark:text-indigo-400 mt-0.5">İsim yazdıkça ikon otomatik seçilir</span>
+                </div>
+
+                <form onsubmit="saveTopicForm(event)" class="space-y-3.5">
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Konu Başlığı *</label>
+                        <input type="text" id="topicTitleInput" required oninput="onTopicTitleInput(this.value)" placeholder="Örn: GTA 6, İş, Bira, Davul, Araç..." class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-indigo-500 outline-none text-sm font-semibold">
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Kısa Açıklama (Opsiyonel)</label>
+                        <input type="text" id="topicDescInput" placeholder="Bu ana konu ne hakkında?" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-indigo-500 outline-none text-xs">
+                    </div>
+
+                    <!-- Manuel İkon Seçimi veya Görsel Yükleme -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">İkonu Değiştir (Opsiyonel)</label>
+                            <label class="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 cursor-pointer hover:underline">
+                                📷 Özel Resim Seç
+                                <input type="file" accept="image/*" class="hidden" onchange="handleTopicCustomImage(event)">
+                            </label>
+                        </div>
+                        <div id="emojiQuickGrid" class="grid grid-cols-8 gap-1.5 bg-slate-100 dark:bg-slate-800/80 p-2 rounded-xl">
+                            <!-- JS ile emoji seçenekleri doldurulur -->
+                        </div>
+                    </div>
+
+                    <!-- Sabitleme Seçeneği -->
+                    <label class="flex items-center justify-between p-3 rounded-xl bg-slate-100/80 dark:bg-slate-800/70 cursor-pointer">
+                        <div class="flex items-center gap-2">
+                            <span>📌</span>
+                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200">Ana Ekranda En Başa Sabitle</span>
+                        </div>
+                        <input type="checkbox" id="topicPinnedInput" onchange="updateTopicPreview()" class="w-4 h-4 accent-indigo-600 rounded">
+                    </label>
+
+                    <div class="pt-1 flex gap-2">
+                        <button type="button" onclick="closeTopicModal()" class="tap-scale flex-1 py-3 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">Vazgeç</button>
+                        <button type="submit" class="tap-scale flex-[2] py-3 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-md shadow-indigo-600/25">Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- BOTTOM SHEET 2: ALT BAŞLIK EKLE / DÜZENLE (LINK + GÖRSEL) -->
+        <!-- ========================================================= -->
+        <div id="nodeModal" onclick="if(event.target===this) closeNodeModal()" class="fixed inset-0 z-50 hidden items-end justify-center bg-slate-950/60 backdrop-blur-xs">
+            <div class="animate-sheet bg-white dark:bg-[#131b2e] w-full max-w-md rounded-t-[28px] border-t border-slate-200 dark:border-slate-800 p-5 pb-safe max-h-[92vh] overflow-y-auto">
+                <div class="w-10 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto mb-4"></div>
+
+                <div class="flex items-start justify-between mb-3">
+                    <div>
+                        <h3 id="nodeModalTitle" class="text-base font-extrabold text-slate-900 dark:text-white">Alt Başlık Ekle</h3>
+                        <p id="nodeModalSub" class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 mt-0.5">Konu içine ekleniyor</p>
+                    </div>
+                    <button onclick="closeNodeModal()" class="tap-scale p-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500">✕</button>
+                </div>
+
+                <form onsubmit="saveNodeForm(event)" class="space-y-3">
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Alt Başlık *</label>
+                        <input type="text" id="nodeTitleInput" required placeholder="Örn: Araçlar, Kaplama, Kaynak..." class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-indigo-500 outline-none text-sm font-semibold">
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Açıklama</label>
+                        <textarea id="nodeDescInput" rows="3" placeholder="Unutmaman gereken notları buraya yaz..." class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-indigo-500 outline-none text-xs resize-none leading-relaxed"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">İnternet Linki (URL)</label>
+                        <input type="url" id="nodeLinkInput" placeholder="https://youtube.com/... veya ürün linki" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-indigo-500 outline-none text-xs">
+                    </div>
+
+                    <!-- Görsel Ekleme Alanı -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Görsel / Ekran Görüntüsü</label>
+                            <button type="button" id="removeNodeImgBtn" onclick="clearNodeImage()" class="hidden text-[11px] font-bold text-rose-500">Görseli Kaldır</button>
+                        </div>
+                        <label class="tap-scale flex items-center justify-center gap-2 w-full py-2.5 px-3 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-xs font-semibold text-slate-600 dark:text-slate-300 cursor-pointer">
+                            <span>🖼️ Galeriden Görsel Seç veya Fotoğraf Çek</span>
+                            <input type="file" id="nodeImgInput" accept="image/*" class="hidden" onchange="handleNodeImageUpload(event)">
+                        </label>
+                        <img id="nodeImgPreview" src="" alt="Önizleme" class="hidden mt-2 max-h-36 rounded-xl object-contain mx-auto border border-slate-200 dark:border-slate-700">
+                    </div>
+
+                    <div class="pt-2 flex gap-2">
+                        <button type="button" onclick="closeNodeModal()" class="tap-scale flex-1 py-3 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">Vazgeç</button>
+                        <button type="submit" class="tap-scale flex-[2] py-3 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-md shadow-indigo-600/25">Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- BOTTOM SHEET 3: HIZLI KARALAMA KUTUSU (QUICK DROP)        -->
+        <!-- ========================================================= -->
+        <div id="scratchpadSheet" onclick="if(event.target===this) closeScratchpadSheet()" class="fixed inset-0 z-50 hidden items-end justify-center bg-slate-950/60 backdrop-blur-xs">
+            <div class="animate-sheet bg-white dark:bg-[#131b2e] w-full max-w-md rounded-t-[28px] border-t border-slate-200 dark:border-slate-800 p-5 pb-safe max-h-[88vh] flex flex-col">
+                <div class="w-10 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto mb-3 shrink-0"></div>
+
+                <div class="flex items-center justify-between mb-3 shrink-0">
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-900 dark:text-white">📝 Hızlı Karalama Kutusu</h3>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400">Hızlıca not/link at, sonra istediğin konuya taşı</p>
+                    </div>
+                    <button onclick="closeScratchpadSheet()" class="tap-scale p-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500">✕</button>
+                </div>
+
+                <!-- Hızlı Ekleme Formu -->
+                <form onsubmit="addScratchpadItem(event)" class="flex gap-2 mb-3 shrink-0">
+                    <input type="text" id="scratchpadInput" required placeholder="Not veya https:// link yapıştır..." class="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-amber-500 outline-none text-xs font-medium">
+                    <button type="submit" class="tap-scale px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shrink-0">At</button>
+                </form>
+
+                <!-- Karalama Listesi -->
+                <div id="scratchpadList" class="flex-1 overflow-y-auto space-y-2 pr-0.5"></div>
+            </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- BOTTOM SHEET 4: BAŞLIK / KARALAMA TAŞIMA (MOVE)           -->
+        <!-- ========================================================= -->
+        <div id="moveSheet" onclick="if(event.target===this) closeMoveSheet()" class="fixed inset-0 z-50 hidden items-end justify-center bg-slate-950/60 backdrop-blur-xs">
+            <div class="animate-sheet bg-white dark:bg-[#131b2e] w-full max-w-md rounded-t-[28px] border-t border-slate-200 dark:border-slate-800 p-5 pb-safe max-h-[85vh] flex flex-col">
+                <div class="w-10 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto mb-3 shrink-0"></div>
+
+                <div class="flex items-center justify-between mb-3 shrink-0">
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-900 dark:text-white">📦 Hedef Konu / Dal Seç</h3>
+                        <p id="moveItemLabel" class="text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold truncate max-w-[260px]">Nereye taşınsın?</p>
+                    </div>
+                    <button onclick="closeMoveSheet()" class="tap-scale p-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500">✕</button>
+                </div>
+
+                <div id="moveTargetList" class="flex-1 overflow-y-auto space-y-1.5 pr-1"></div>
+            </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- BOTTOM SHEET 5: GLOBAL ARAMA                              -->
+        <!-- ========================================================= -->
+        <div id="globalSearchSheet" onclick="if(event.target===this) closeGlobalSearch()" class="fixed inset-0 z-50 hidden items-end justify-center bg-slate-950/60 backdrop-blur-xs">
+            <div class="animate-sheet bg-white dark:bg-[#131b2e] w-full max-w-md rounded-t-[28px] border-t border-slate-200 dark:border-slate-800 p-5 pb-safe h-[85vh] flex flex-col">
+                <div class="w-10 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto mb-3 shrink-0"></div>
+
+                <div class="flex items-center gap-2 mb-3 shrink-0">
+                    <div class="relative flex-1">
+                        <input type="text" id="globalSearchInput" oninput="runGlobalSearch(this.value)" placeholder="Tüm konular, başlıklar, açıklamalar, linkler..." class="w-full pl-9 pr-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-indigo-500/40 focus:border-indigo-500 outline-none text-xs font-semibold">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
+                    </div>
+                    <button onclick="closeGlobalSearch()" class="tap-scale px-3 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300">Kapat</button>
+                </div>
+
+                <div id="globalSearchResults" class="flex-1 overflow-y-auto space-y-2"></div>
+            </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- BOTTOM SHEET 6: AYARLAR, YEDEKLEME & APK REHBERİ          -->
+        <!-- ========================================================= -->
+        <div id="settingsSheet" onclick="if(event.target===this) closeSettingsSheet()" class="fixed inset-0 z-50 hidden items-end justify-center bg-slate-950/60 backdrop-blur-xs">
+            <div class="animate-sheet bg-white dark:bg-[#131b2e] w-full max-w-md rounded-t-[28px] border-t border-slate-200 dark:border-slate-800 p-5 pb-safe max-h-[88vh] overflow-y-auto">
+                <div class="w-10 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto mb-4"></div>
+
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-base font-extrabold text-slate-900 dark:text-white">⚙️ Ayarlar, Yedek & APK</h3>
+                    <button onclick="closeSettingsSheet()" class="tap-scale p-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500">✕</button>
+                </div>
+
+                <div class="space-y-2.5">
+                    <!-- JSON Yedek İndir -->
+                    <button onclick="exportBackup()" class="tap-scale w-full p-3.5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200/70 dark:border-indigo-800/50 flex items-center gap-3 text-left">
+                        <span class="text-xl">💾</span>
+                        <div>
+                            <div class="text-xs font-bold text-slate-900 dark:text-white">Yedeği Cihaza İndir (JSON)</div>
+                            <div class="text-[11px] text-slate-500 dark:text-slate-400">Tüm konular, alt dallar ve karalamaları yedekle</div>
+                        </div>
+                    </button>
+
+                    <!-- JSON Yedek Yükle -->
+                    <label class="tap-scale w-full p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/60 flex items-center gap-3 text-left cursor-pointer">
+                        <span class="text-xl">📥</span>
+                        <div>
+                            <div class="text-xs font-bold text-slate-900 dark:text-white">Yedekten Geri Yükle</div>
+                            <div class="text-[11px] text-slate-500 dark:text-slate-400">Daha önce indirdiğin .json dosyasını seç</div>
+                        </div>
+                        <input type="file" accept=".json" class="hidden" onchange="importBackup(event)">
+                    </label>
+
+                    <!-- Android Uygulama / APK Rehberi -->
+                    <div class="p-3.5 rounded-2xl bg-emerald-50/90 dark:bg-emerald-950/35 border border-emerald-200/70 dark:border-emerald-800/40 text-xs space-y-1.5">
+                        <div class="font-extrabold text-emerald-900 dark:text-emerald-300">📱 Telefona Uygulama Olarak Kur / APK Yap</div>
+                        <p class="text-[11px] text-slate-700 dark:text-slate-300 leading-relaxed">
+                            <strong>1) Hızlı Kurulum:</strong> Bu sayfayı Android <strong>Chrome</strong>'da açıp sağ üstteki <strong>⋮ &gt; "Ana ekrana ekle"</strong> seçeneğine bas. Telefonuna <strong>srt notes</strong> ikonuyla kurulur ve internetsiz çalışır.
+                        </p>
+                        <p class="text-[11px] text-slate-700 dark:text-slate-300 leading-relaxed">
+                            <strong>2) Gerçek .APK Dosyası:</strong> HTML dosyasını ücretsiz <strong>Netlify Drop</strong>'a sürükleyip linkini <strong>PWABuilder.com</strong>'a yapıştırarak 1 dakikada imzalı <code>srt-notes.apk</code> indirebilirsin.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- GÖRSEL BÜYÜTME (LIGHTBOX) MODALI                          -->
+        <!-- ========================================================= -->
+        <div id="lightboxModal" onclick="closeLightbox()" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/90 p-4">
+            <img id="lightboxImg" src="" alt="Tam Boyut" class="max-w-full max-h-[85vh] rounded-2xl object-contain shadow-2xl">
+            <button onclick="closeLightbox()" class="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/15 text-white text-lg font-bold">✕</button>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- SİLME ONAY MODALI                                         -->
+        <!-- ========================================================= -->
+        <div id="confirmDeleteModal" onclick="if(event.target===this) closeConfirmDelete()" class="fixed inset-0 z-50 hidden items-end justify-center bg-slate-950/60 backdrop-blur-xs">
+            <div class="animate-sheet bg-white dark:bg-[#131b2e] w-full max-w-md rounded-t-[28px] border-t border-slate-200 dark:border-slate-800 p-5 pb-safe">
+                <div class="w-10 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto mb-3"></div>
+                <h3 class="text-base font-extrabold text-slate-900 dark:text-white">Silme Onayı</h3>
+                <p id="confirmDeleteText" class="text-xs text-slate-600 dark:text-slate-300 mt-1.5 mb-4 leading-relaxed">Silmek istediğine emin misin?</p>
+                <div class="flex gap-2">
+                    <button onclick="closeConfirmDelete()" class="tap-scale flex-1 py-3 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">Vazgeç</button>
+                    <button onclick="executePendingDelete()" class="tap-scale flex-1 py-3 rounded-xl text-xs font-bold bg-rose-600 text-white">Evet, Sil</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TOAST BİLDİRİM -->
+        <div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-opacity duration-200 bg-slate-900/95 dark:bg-white/95 text-white dark:text-slate-900 text-xs font-bold px-4 py-2 rounded-full shadow-xl">
+            Kaydedildi
+        </div>
+    </div>
+
+    <script>
+        // =============================================================
+        // 1. PWA MANIFEST & TEMA YÖNETİMİ
+        // =============================================================
+        (function initPWA() {
+            try {
+                const manifest = {
+                    name: "srt notes",
+                    short_name: "srt notes",
+                    start_url: ".",
+                    display: "standalone",
+                    background_color: "#0b101b",
+                    theme_color: "#4f46e5",
+                    icons: [{
+                        src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='44' fill='%234f46e5'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold' font-size='58'%3Esrt%3C/text%3E%3C/svg%3E",
+                        sizes: "192x192",
+                        type: "image/svg+xml"
+                    }]
+                };
+                const blob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+                document.getElementById('pwaManifest').setAttribute('href', URL.createObjectURL(blob));
+            } catch (e) {}
+        })();
+
+        const THEME_KEY = 'srt_notes_theme_v2';
+        function initTheme() {
+            const saved = localStorage.getItem(THEME_KEY);
+            const isDark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.documentElement.classList.toggle('dark', isDark);
+            document.getElementById('metaThemeColor').setAttribute('content', isDark ? '#0b101b' : '#f8fafc');
+        }
+        function toggleTheme() {
+            const nextDark = !document.documentElement.classList.contains('dark');
+            localStorage.setItem(THEME_KEY, nextDark ? 'dark' : 'light');
+            document.documentElement.classList.toggle('dark', nextDark);
+            document.getElementById('metaThemeColor').setAttribute('content', nextDark ? '#0b101b' : '#f8fafc');
+        }
+
+        // =============================================================
+        // 2. AKILLI OTOMATİK İKON & RENK EŞLEŞTİRME MOTORU
+        // =============================================================
+        const SMART_ICON_RULES = [
+            { keys: ['gta', 'oyun', 'game', 'ps5', 'xbox', 'steam', 'fifa', 'fc2', 'cs', 'valorant'], icon: '🎮', gradient: 'from-indigo-600 to-purple-600' },
+            { keys: ['iş', 'fabrika', 'üretim', 'kaplama', 'atölye', 'şantiye', 'proje', 'ofis', 'toplantı'], icon: '🏭', gradient: 'from-amber-500 to-orange-600' },
+            { keys: ['bira', 'malt', 'fermant', 'içecek', 'şarap', 'kahve', 'çay'], icon: '🍺', gradient: 'from-amber-400 to-yellow-600' },
+            { keys: ['davul', 'müzik', 'bateri', 'gitar', 'ritim', 'şarkı', 'ses', 'stüdyo'], icon: '🥁', gradient: 'from-rose-500 to-pink-600' },
+            { keys: ['araç', 'araba', 'otomobil', 'motor', 'lastik', 'bakım', 'sanayi', 'yakıt'], icon: '🚗', gradient: 'from-sky-500 to-blue-600' },
+            { keys: ['balık', 'olta', 'deniz', 'tekne', 'av'], icon: '🎣', gradient: 'from-cyan-500 to-teal-600' },
+            { keys: ['ev', 'tadilat', 'mobilya', 'bahçe', 'kira', 'fatura'], icon: '🏠', gradient: 'from-emerald-500 to-teal-600' },
+            { keys: ['film', 'dizi', 'sinema', 'izle', 'youtube', 'video'], icon: '🎬', gradient: 'from-red-500 to-rose-600' },
+            { keys: ['tamir', 'alet', 'elektrik', 'tesisat', 'onarım', 'kaynak'], icon: '🛠️', gradient: 'from-slate-600 to-slate-800' },
+            { keys: ['gezi', 'tatil', 'seyahat', 'kamp', 'uçak', 'otel'], icon: '✈️', gradient: 'from-blue-500 to-indigo-600' },
+            { keys: ['yemek', 'tarif', 'mutfak', 'mangal', 'et', 'restoran'], icon: '🍳', gradient: 'from-orange-500 to-red-500' },
+            { keys: ['spor', 'maç', 'futbol', 'fitness', 'koşu', 'antrenman'], icon: '⚽', gradient: 'from-green-500 to-emerald-600' },
+            { keys: ['para', 'finans', 'banka', 'borç', 'kredi', 'bütçe', 'yatırım', 'altın'], icon: '💰', gradient: 'from-emerald-600 to-green-700' },
+            { keys: ['alışveriş', 'market', 'alınacak', 'sipariş', 'liste'], icon: '🛒', gradient: 'from-fuchsia-500 to-purple-600' },
+            { keys: ['sağlık', 'ilaç', 'doktor', 'hastane', 'diş'], icon: '💊', gradient: 'from-teal-500 to-emerald-600' },
+            { keys: ['kitap', 'ders', 'eğitim', 'not', 'oku', 'sınav'], icon: '📚', gradient: 'from-violet-500 to-indigo-600' },
+            { keys: ['kod', 'yazılım', 'pc', 'bilgisayar', 'telefon', 'apk', 'uygulama'], icon: '💻', gradient: 'from-cyan-600 to-blue-700' }
+        ];
+
+        const QUICK_EMOJIS = ['📁', '🎮', '🏭', '🍺', '🥁', '🚗', '🎣', '🏠', '🎬', '🛠️', '✈️', '🍳', '⚽', '💰', '🛒', '💻'];
+
+        function detectSmartIcon(title) {
+            const lower = (title || '').toLocaleLowerCase('tr-TR');
+            for (const rule of SMART_ICON_RULES) {
+                if (rule.keys.some(k => lower.includes(k))) {
+                    return { icon: rule.icon, gradient: rule.gradient };
+                }
+            }
+            // Eşleşme yoksa baş harfe göre renk seç
+            const fallbackGradients = [
+                'from-indigo-500 to-violet-600',
+                'from-emerald-500 to-teal-600',
+                'from-amber-500 to-orange-600',
+                'from-sky-500 to-blue-600',
+                'from-rose-500 to-pink-600'
+            ];
+            const hash = lower.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+            return { icon: '📁', gradient: fallbackGradients[hash % fallbackGradients.length] };
+        }
+
+        // =============================================================
+        // 3. VERİ MODELİ & DEPOLAMA
+        // =============================================================
+        const STORAGE_KEY = 'srt_notes_launcher_v3';
+
+        const INITIAL_DATA = {
+            topics: [
+                {
+                    id: 't-gta6',
+                    title: 'GTA 6',
+                    description: 'Oyun detayları, araçlar ve mekanikler',
+                    icon: '🎮',
+                    customImage: '',
+                    gradient: 'from-indigo-600 to-purple-600',
+                    pinned: false,
+                    children: [
+                        {
+                            id: 'n-gta-1',
+                            title: 'Araçlar',
+                            description: 'Modifiye seçenekleri ve klasik spor arabalar.',
+                            link: 'https://www.rockstargames.com',
+                            image: '',
+                            expanded: false,
+                            children: []
+                        },
+                        {
+                            id: 'n-gta-2',
+                            title: 'Balık Tutma',
+                            description: 'Tekne ile açık deniz avcılığı detayları.',
+                            link: '',
+                            image: '',
+                            expanded: false,
+                            children: []
+                        }
+                    ]
+                },
+                {
+                    id: 't-is',
+                    title: 'İş',
+                    description: 'Atölye, kaplama ve üretim süreçleri',
+                    icon: '🏭',
+                    customImage: '',
+                    gradient: 'from-amber-500 to-orange-600',
+                    pinned: true,
+                    children: [
+                        {
+                            id: 'n-is-1',
+                            title: 'Kaplama',
+                            description: '220 mikron şartname ve yüzey hazırlığı.',
+                            link: '',
+                            image: '',
+                            expanded: false,
+                            children: [
+                                {
+                                    id: 'n-is-1-1',
+                                    title: 'Krom Banyo Süresi',
+                                    description: 'Sıcaklık ve akım kontrol değerleri.',
+                                    link: '',
+                                    image: '',
+                                    expanded: false,
+                                    children: []
+                                }
+                            ]
+                        },
+                        {
+                            id: 'n-is-2',
+                            title: 'Üretim',
+                            description: 'Haftalık sevkiyat ve kalite kontrol planı.',
+                            link: '',
+                            image: '',
+                            expanded: false,
+                            children: []
+                        }
+                    ]
+                },
+                {
+                    id: 't-bira',
+                    title: 'Bira Yapımı',
+                    description: 'Ev yapımı malt ve fermantasyon reçeteleri',
+                    icon: '🍺',
+                    customImage: '',
+                    gradient: 'from-amber-400 to-yellow-600',
+                    pinned: false,
+                    children: [
+                        {
+                            id: 'n-bira-1',
+                            title: 'Fermantasyon Sıcaklığı',
+                            description: 'İlk 7 gün 19-20 derece sabit tutulacak.',
+                            link: '',
+                            image: '',
+                            expanded: false,
+                            children: []
+                        }
+                    ]
+                },
+                {
+                    id: 't-davul',
+                    title: 'Davul',
+                    description: 'Ritim egzersizleri ve ekipman notları',
+                    icon: '🥁',
+                    customImage: '',
+                    gradient: 'from-rose-500 to-pink-600',
+                    pinned: false,
+                    children: [
+                        {
+                            id: 'n-davul-1',
+                            title: 'Rudiment Egzersizleri',
+                            description: 'Paradiddle ve double stroke metronom çalışması.',
+                            link: '',
+                            image: '',
+                            expanded: false,
+                            children: []
+                        }
+                    ]
+                }
+            ],
+            scratchpad: [
+                {
+                    id: 'sc-1',
+                    text: 'Paslanmaz boru tedarikçi fiyat listesi sorulacak',
+                    link: '',
+                    createdAt: Date.now()
+                }
+            ]
+        };
+
+        let appData = { topics: [], scratchpad: [] };
+        let currentTopicId = null;
+        let focusedNodePathIds = []; // Yol haritası (Breadcrumb) için aktif yol
+
+        // Modal / İşlem durumları
+        let editingTopicId = null;
+        let topicManualIcon = null;
+        let topicCustomImage = '';
+        let nodeModalState = { mode: 'add', targetNodeId: null };
+        let currentNodeImageBase64 = '';
+        let moveContext = null; // { type: 'scratchpad'|'node', scratchId?, fromTopicId?, nodeId? }
+        let pendingDelete = null; // { type: 'topic'|'node'|'scratch', id }
+
+        function generateId(prefix = 'id') {
+            return `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+        }
+
+        function collapseAllNodes(nodes) {
+            if (!Array.isArray(nodes)) return;
+            for (const n of nodes) {
+                n.expanded = false;
+                if (n.children) collapseAllNodes(n.children);
+            }
+        }
+
+        function loadAppData() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    appData = JSON.parse(raw);
+                    if (!Array.isArray(appData.topics)) appData.topics = [];
+                    if (!Array.isArray(appData.scratchpad)) appData.scratchpad = [];
+                    appData.topics.forEach(t => collapseAllNodes(t.children));
+                } else {
+                    appData = JSON.parse(JSON.stringify(INITIAL_DATA));
+                    saveAppData();
+                }
+            } catch (e) {
+                appData = JSON.parse(JSON.stringify(INITIAL_DATA));
+            }
+        }
+
+        function saveAppData() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+            } catch (e) {
+                showToast('Depolama alanı dolu olabilir!');
+            }
+        }
+
+        function sortTurkishAZ(arr, key = 'title') {
+            return [...arr].sort((a, b) => (a[key] || '').localeCompare(b[key] || '', 'tr-TR', { sensitivity: 'base' }));
+        }
+
+        function countAllChildren(nodes) {
+            if (!Array.isArray(nodes)) return 0;
+            let total = 0;
+            for (const n of nodes) {
+                total += 1 + countAllChildren(n.children);
+            }
+            return total;
+        }
+
+        function findTopic(id) {
+            return appData.topics.find(t => t.id === id) || null;
+        }
+
+        function findNodeRecursive(nodes, id) {
+            if (!Array.isArray(nodes)) return null;
+            for (const n of nodes) {
+                if (n.id === id) return n;
+                const found = findNodeRecursive(n.children, id);
+                if (found) return found;
+            }
+            return null;
+        }
+
+        function findNodePath(nodes, targetId, path = []) {
+            if (!Array.isArray(nodes)) return null;
+            for (const n of nodes) {
+                const nextPath = [...path, n];
+                if (n.id === targetId) return nextPath;
+                const res = findNodePath(n.children, targetId, nextPath);
+                if (res) return res;
+            }
+            return null;
+        }
+
+        function removeNodeRecursive(nodes, targetId) {
+            if (!Array.isArray(nodes)) return null;
+            for (let i = 0; i < nodes.length; i++) {
+                if (nodes[i].id === targetId) {
+                    const [removed] = nodes.splice(i, 1);
+                    return removed;
+                }
+                const removedChild = removeNodeRecursive(nodes[i].children, targetId);
+                if (removedChild) return removedChild;
+            }
+            return null;
+        }
+
+        function isDescendant(node, potentialDescendantId) {
+            if (!node || !node.children) return false;
+            for (const c of node.children) {
+                if (c.id === potentialDescendantId || isDescendant(c, potentialDescendantId)) return true;
+            }
+            return false;
+        }
+
+        function escapeHtml(str) {
+            const d = document.createElement('div');
+            d.textContent = str || '';
+            return d.innerHTML;
+        }
+
+        // =============================================================
+        // 4. EKRAN 1: ANA EKRAN (ANDROID LAUNCHER 4'LÜ İKON IZGARASI)
+        // =============================================================
+        function renderHomeScreen() {
+            const grid = document.getElementById('launcherGrid');
+            const emptyState = document.getElementById('homeEmptyState');
+            const badge = document.getElementById('scratchpadBadge');
+
+            // Karalama rozeti
+            if (appData.scratchpad.length > 0) {
+                badge.textContent = appData.scratchpad.length;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+
+            if (appData.topics.length === 0) {
+                grid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            emptyState.classList.add('hidden');
+
+            // Sıralama: Önce sabitlenenler (A-Z), hemen ardından sabitlenmeyenler (A-Z) - başlık/çizgi yok!
+            const pinned = sortTurkishAZ(appData.topics.filter(t => t.pinned));
+            const unpinned = sortTurkishAZ(appData.topics.filter(t => !t.pinned));
+            const orderedTopics = [...pinned, ...unpinned];
+
+            grid.innerHTML = orderedTopics.map(topic => {
+                const subCount = countAllChildren(topic.children);
+                const iconContent = topic.customImage
+                    ? `<img src="${topic.customImage}" alt="${escapeHtml(topic.title)}" class="w-full h-full object-cover">`
+                    : `<span class="text-[23px] leading-none select-none">${escapeHtml(topic.icon || '📁')}</span>`;
+
+                return `
+                    <button onclick="openTopicDetail('${topic.id}')" class="tap-scale flex flex-col items-center text-center group focus:outline-none">
+                        <div class="relative">
+                            <div class="app-icon-box bg-gradient-to-br ${topic.gradient || 'from-indigo-500 to-violet-600'} flex items-center justify-center text-white overflow-hidden">
+                                ${iconContent}
+                            </div>
+                            ${topic.pinned ? `
+                                <span class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white dark:bg-slate-900 shadow-sm flex items-center justify-center text-[11px] border border-slate-200/70 dark:border-slate-700">📌</span>
+                            ` : ''}
+                        </div>
+                        <span class="mt-1.5 w-full text-[11.5px] font-bold text-slate-800 dark:text-slate-100 truncate px-0.5 leading-tight">
+                            ${escapeHtml(topic.title)}
+                        </span>
+                        <span class="text-[10px] font-medium text-slate-400 dark:text-slate-500 leading-none mt-0.5">
+                            (${subCount})
+                        </span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        // =============================================================
+        // 5. EKRAN 2: KONU DETAY & YOL HARİTASI & HİYERARŞİK AĞAÇ
+        // =============================================================
+        function openTopicDetail(topicId, targetNodeIdToExpand = null) {
+            const topic = findTopic(topicId);
+            if (!topic) return;
+
+            currentTopicId = topicId;
+            // Konuya ilk girişte tüm alt başlıklar kapalı başlar
+            collapseAllNodes(topic.children);
+            focusedNodePathIds = [];
+
+            // Eğer aramadan spesifik bir alt başlığa zıplandıysa sadece o yolu aç
+            if (targetNodeIdToExpand) {
+                const pathNodes = findNodePath(topic.children, targetNodeIdToExpand);
+                if (pathNodes) {
+                    pathNodes.forEach(n => n.expanded = true);
+                    focusedNodePathIds = pathNodes.map(n => n.id);
+                }
+            }
+
+            document.getElementById('homeScreen').classList.add('hidden');
+            const detailScreen = document.getElementById('topicDetailScreen');
+            detailScreen.classList.remove('hidden');
+            detailScreen.classList.add('flex');
+
+            renderTopicDetail();
+        }
+
+        function goHome() {
+            currentTopicId = null;
+            focusedNodePathIds = [];
+            const detailScreen = document.getElementById('topicDetailScreen');
+            detailScreen.classList.add('hidden');
+            detailScreen.classList.remove('flex');
+            document.getElementById('homeScreen').classList.remove('hidden');
+            renderHomeScreen();
+        }
+
+        function renderBreadcrumb(topic) {
+            const bar = document.getElementById('breadcrumbBar');
+            let html = `
+                <button onclick="goHome()" class="hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1">
+                    <span>🏠 Ana Ekran</span>
+                </button>
+                <span class="opacity-40">›</span>
+                <button onclick="resetBreadcrumbFocus()" class="${focusedNodePathIds.length === 0 ? 'text-indigo-600 dark:text-indigo-400 font-bold' : 'hover:text-indigo-600'}">
+                    ${escapeHtml(topic.title)}
+                </button>
+            `;
+
+            if (focusedNodePathIds.length > 0) {
+                focusedNodePathIds.forEach((nid, idx) => {
+                    const node = findNodeRecursive(topic.children, nid);
+                    if (node) {
+                        const isLast = idx === focusedNodePathIds.length - 1;
+                        html += `
+                            <span class="opacity-40">›</span>
+                            <button onclick="focusBreadcrumbNode('${node.id}')" class="${isLast ? 'text-indigo-600 dark:text-indigo-400 font-bold' : 'hover:text-indigo-600'} truncate max-w-[110px]">
+                                ${escapeHtml(node.title)}
+                            </button>
+                        `;
+                    }
+                });
+            }
+
+            bar.innerHTML = html;
+        }
+
+        function resetBreadcrumbFocus() {
+            focusedNodePathIds = [];
+            const topic = findTopic(currentTopicId);
+            if (topic) renderBreadcrumb(topic);
+        }
+
+        function focusBreadcrumbNode(nodeId) {
+            const topic = findTopic(currentTopicId);
+            if (!topic) return;
+            const path = findNodePath(topic.children, nodeId);
+            if (path) {
+                focusedNodePathIds = path.map(n => n.id);
+                renderBreadcrumb(topic);
+                const el = document.getElementById('node-card-' + nodeId);
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function renderTopicDetail() {
+            const topic = findTopic(currentTopicId);
+            if (!topic) return goHome();
+
+            // Üst bilgiler
+            const iconBox = document.getElementById('detailTopicIcon');
+            iconBox.className = `w-8 h-8 rounded-xl bg-gradient-to-br ${topic.gradient || 'from-indigo-500 to-violet-600'} flex items-center justify-center text-white text-base shrink-0 overflow-hidden`;
+            iconBox.innerHTML = topic.customImage
+                ? `<img src="${topic.customImage}" class="w-full h-full object-cover">`
+                : escapeHtml(topic.icon || '📁');
+
+            document.getElementById('detailTopicTitle').textContent = topic.title;
+            const totalSubs = countAllChildren(topic.children);
+            document.getElementById('detailTopicSub').textContent = `${totalSubs} alt başlık • A-Z sıralı`;
+
+            const pinBtn = document.getElementById('detailPinBtn');
+            pinBtn.className = topic.pinned
+                ? 'tap-scale w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-500/25 border border-amber-400/50 flex items-center justify-center text-sm'
+                : 'tap-scale w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 opacity-50 flex items-center justify-center text-sm';
+
+            const descBox = document.getElementById('detailTopicDescBox');
+            if (topic.description) {
+                descBox.textContent = topic.description;
+                descBox.classList.remove('hidden');
+            } else {
+                descBox.classList.add('hidden');
+            }
+
+            renderBreadcrumb(topic);
+
+            // Tümünü Aç / Kapat buton etiketi
+            const anyExpanded = hasAnyExpanded(topic.children);
+            document.getElementById('detailToggleAllBtn').textContent = anyExpanded ? 'Kapat' : 'Aç';
+
+            // Ağaç render (Her seviyede A-Z alfabetik sıralı)
+            const container = document.getElementById('subTreeContainer');
+            const emptyState = document.getElementById('topicEmptyState');
+
+            if (!topic.children || topic.children.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                const sortedRootChildren = sortTurkishAZ(topic.children);
+                container.innerHTML = sortedRootChildren.map(child => renderSubNodeHTML(child, 0)).join('');
+            }
+        }
+
+        function renderSubNodeHTML(node, depth) {
+            const sortedChildren = node.children && node.children.length > 0 ? sortTurkishAZ(node.children) : [];
+            const hasChildren = sortedChildren.length > 0;
+
+            const cardBg = depth === 0
+                ? 'bg-white dark:bg-[#121a2c] border border-slate-200/85 dark:border-slate-800/90 rounded-2xl shadow-2xs'
+                : 'bg-slate-100/80 dark:bg-[#0e1524] border border-slate-200/75 dark:border-slate-800/80 rounded-xl';
+
+            let childrenHTML = '';
+            if (hasChildren && node.expanded) {
+                childrenHTML = `
+                    <div class="mt-2.5 pl-3.5 space-y-2 tree-branch">
+                        ${sortedChildren.map(c => renderSubNodeHTML(c, depth + 1)).join('')}
+                    </div>
+                `;
+            }
+
+            return `
+                <div id="node-card-${node.id}" class="${cardBg} p-3 transition-all">
+                    <div class="flex items-start justify-between gap-2">
+                        <!-- Başlık & Açıklama Tıklama Alanı -->
+                        <div onclick="toggleSubNode('${node.id}')" class="flex items-start gap-2 flex-1 min-w-0 cursor-pointer select-none">
+                            <div class="mt-0.5 w-5 h-5 rounded-md flex items-center justify-center shrink-0 ${hasChildren ? 'bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-400' : 'text-slate-400'}">
+                                ${hasChildren ? `
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 transition-transform duration-150 ${node.expanded ? 'rotate-90' : ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><polyline points="9 18 15 12 9 6"/></svg>
+                                ` : `<span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>`}
+                            </div>
+
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center flex-wrap gap-1.5">
+                                    <span class="${depth === 0 ? 'text-[14px] font-extrabold' : 'text-[13px] font-bold'} text-slate-900 dark:text-white break-words">
+                                        ${escapeHtml(node.title)}
+                                    </span>
+                                    ${hasChildren ? `
+                                        <span class="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300">
+                                            ${sortedChildren.length}
+                                        </span>
+                                    ` : ''}
+                                </div>
+
+                                ${node.description ? `
+                                    <p class="mt-1 text-xs text-slate-600 dark:text-slate-300 whitespace-pre-line break-words leading-relaxed">
+                                        ${escapeHtml(node.description)}
+                                    </p>
+                                ` : ''}
+
+                                ${node.link ? `
+                                    <a href="${escapeHtml(node.link)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()" class="mt-1.5 inline-flex items-center gap-1.5 max-w-full px-2.5 py-1 rounded-lg bg-sky-50 dark:bg-sky-500/15 border border-sky-200/70 dark:border-sky-500/30 text-[11px] font-semibold text-sky-700 dark:text-sky-300 hover:underline">
+                                        <span>🔗</span>
+                                        <span class="truncate">${escapeHtml(node.link.replace(/^https?:\/\//, ''))}</span>
+                                    </a>
+                                ` : ''}
+
+                                ${node.image ? `
+                                    <div class="mt-2">
+                                        <img src="${node.image}" onclick="event.stopPropagation(); openLightbox('${node.image}')" alt="Ek Görsel" class="max-h-32 rounded-xl border border-slate-200 dark:border-slate-700 object-cover cursor-zoom-in">
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        <!-- Sağ Kompakt Eylem İkonları -->
+                        <div class="flex items-center gap-0.5 shrink-0">
+                            <!-- Alt Başlık Ekle (+) -->
+                            <button onclick="openNodeModal('${node.id}', 'add')" title="Alt Başlık Ekle" class="tap-scale w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            </button>
+                            <!-- Düzenle -->
+                            <button onclick="openNodeModal('${node.id}', 'edit')" title="Düzenle" class="tap-scale w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            </button>
+                            <!-- Taşı -->
+                            <button onclick="openMoveSheetForNode('${node.id}')" title="Başka Konuya Taşı" class="tap-scale w-7 h-7 rounded-lg text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="19 9 22 12 19 15"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="16"/></svg>
+                            </button>
+                            <!-- Paylaş (WhatsApp Uyumlu) -->
+                            <button onclick="shareSubNode('${node.id}')" title="WhatsApp / Paylaş" class="tap-scale w-7 h-7 rounded-lg text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                            </button>
+                            <!-- Sil -->
+                            <button onclick="askDeleteNode('${node.id}')" title="Sil" class="tap-scale w-7 h-7 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    ${childrenHTML}
+                </div>
+            `;
+        }
+
+        function toggleSubNode(nodeId) {
+            const topic = findTopic(currentTopicId);
+            if (!topic) return;
+            const node = findNodeRecursive(topic.children, nodeId);
+            if (!node) return;
+
+            // Yol haritasını güncelle
+            const path = findNodePath(topic.children, nodeId);
+            if (path) focusedNodePathIds = path.map(n => n.id);
+
+            if (node.children && node.children.length > 0) {
+                node.expanded = !node.expanded;
+            }
+            renderTopicDetail();
+        }
+
+        function hasAnyExpanded(nodes) {
+            if (!Array.isArray(nodes)) return false;
+            for (const n of nodes) {
+                if (n.expanded && n.children && n.children.length > 0) return true;
+                if (hasAnyExpanded(n.children)) return true;
+            }
+            return false;
+        }
+
+        function toggleAllInTopic() {
+            const topic = findTopic(currentTopicId);
+            if (!topic) return;
+            const targetState = !hasAnyExpanded(topic.children);
+            function setAll(nodes) {
+                for (const n of nodes) {
+                    n.expanded = targetState;
+                    if (n.children) setAll(n.children);
+                }
+            }
+            setAll(topic.children);
+            renderTopicDetail();
+        }
+
+        function toggleCurrentTopicPin() {
+            const topic = findTopic(currentTopicId);
+            if (!topic) return;
+            topic.pinned = !topic.pinned;
+            saveAppData();
+            renderTopicDetail();
+            showToast(topic.pinned ? '📌 Ana ekrana sabitlendi' : 'Sabitleme kaldırıldı');
+        }
+
+        // =============================================================
+        // 6. ANA KONU OLUŞTURMA / DÜZENLEME MODALI
+        // =============================================================
+        function openTopicModal(topicId) {
+            editingTopicId = topicId;
+            topicManualIcon = null;
+            topicCustomImage = '';
+
+            // Hızlı emoji gridini oluştur
+            const emojiGrid = document.getElementById('emojiQuickGrid');
+            emojiGrid.innerHTML = QUICK_EMOJIS.map(em => `
+                <button type="button" onclick="selectManualTopicEmoji('${em}')" class="tap-scale h-8 rounded-lg hover:bg-white dark:hover:bg-slate-700 flex items-center justify-center text-base">
+                    ${em}
+                </button>
+            `).join('');
+
+            const titleInput = document.getElementById('topicTitleInput');
+            const descInput = document.getElementById('topicDescInput');
+            const pinInput = document.getElementById('topicPinnedInput');
+
+            if (topicId) {
+                const topic = findTopic(topicId);
+                if (!topic) return;
+                document.getElementById('topicModalHeading').textContent = 'Konu İkonunu Düzenle';
+                titleInput.value = topic.title;
+                descInput.value = topic.description || '';
+                pinInput.checked = !!topic.pinned;
+                topicManualIcon = topic.icon;
+                topicCustomImage = topic.customImage || '';
+            } else {
+                document.getElementById('topicModalHeading').textContent = 'Yeni Konu İkonu';
+                titleInput.value = '';
+                descInput.value = '';
+                pinInput.checked = false;
+            }
+
+            updateTopicPreview();
+            const modal = document.getElementById('topicModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => titleInput.focus(), 100);
+        }
+
+        function closeTopicModal() {
+            const modal = document.getElementById('topicModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function onTopicTitleInput(val) {
+            // Eğer kullanıcı özel resim veya manuel emoji seçmediyse başlığa göre otomatik bul
+            updateTopicPreview();
+        }
+
+        function selectManualTopicEmoji(em) {
+            topicManualIcon = em;
+            topicCustomImage = '';
+            updateTopicPreview();
+        }
+
+        function handleTopicCustomImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            compressImageFile(file, 160, (base64) => {
+                topicCustomImage = base64;
+                updateTopicPreview();
+            });
+        }
+
+        function updateTopicPreview() {
+            const title = document.getElementById('topicTitleInput').value.trim() || 'Yeni Konu';
+            const isPinned = document.getElementById('topicPinnedInput').checked;
+            const smart = detectSmartIcon(title);
+            const finalIcon = topicManualIcon || smart.icon;
+
+            const box = document.getElementById('topicPreviewIconBox');
+            box.className = `app-icon-box bg-gradient-to-br ${smart.gradient} flex items-center justify-center text-2xl text-white overflow-hidden`;
+            box.innerHTML = topicCustomImage
+                ? `<img src="${topicCustomImage}" class="w-full h-full object-cover">`
+                : finalIcon;
+
+            document.getElementById('topicPreviewLabel').textContent = title;
+            document.getElementById('topicPreviewPin').classList.toggle('hidden', !isPinned);
+        }
+
+        function saveTopicForm(event) {
+            event.preventDefault();
+            const title = document.getElementById('topicTitleInput').value.trim();
+            const description = document.getElementById('topicDescInput').value.trim();
+            const pinned = document.getElementById('topicPinnedInput').checked;
+            if (!title) return;
+
+            const smart = detectSmartIcon(title);
+            const finalIcon = topicManualIcon || smart.icon;
+
+            if (editingTopicId) {
+                const topic = findTopic(editingTopicId);
+                if (topic) {
+                    topic.title = title;
+                    topic.description = description;
+                    topic.pinned = pinned;
+                    topic.icon = finalIcon;
+                    topic.customImage = topicCustomImage;
+                    topic.gradient = smart.gradient;
+                }
+                saveAppData();
+                closeTopicModal();
+                if (currentTopicId === editingTopicId) renderTopicDetail();
+                else renderHomeScreen();
+                showToast('Konu güncellendi');
+            } else {
+                const newTopic = {
+                    id: generateId('t'),
+                    title,
+                    description,
+                    icon: finalIcon,
+                    customImage: topicCustomImage,
+                    gradient: smart.gradient,
+                    pinned,
+                    children: []
+                };
+                appData.topics.push(newTopic);
+                saveAppData();
+                closeTopicModal();
+                renderHomeScreen();
+                showToast(`"${title}" ikonu eklendi`);
+            }
+        }
+
+        // =============================================================
+        // 7. ALT BAŞLIK EKLE / DÜZENLE (LINK + SIKIŞTIRILMIŞ GÖRSEL)
+        // =============================================================
+        function openNodeModal(targetNodeId, mode) {
+            nodeModalState = { targetNodeId, mode };
+            currentNodeImageBase64 = '';
+
+            const topic = findTopic(currentTopicId);
+            if (!topic) return;
+
+            const titleInput = document.getElementById('nodeTitleInput');
+            const descInput = document.getElementById('nodeDescInput');
+            const linkInput = document.getElementById('nodeLinkInput');
+            const imgPreview = document.getElementById('nodeImgPreview');
+            const removeImgBtn = document.getElementById('removeNodeImgBtn');
+
+            imgPreview.classList.add('hidden');
+            removeImgBtn.classList.add('hidden');
+            document.getElementById('nodeImgInput').value = '';
+
+            if (mode === 'add') {
+                titleInput.value = '';
+                descInput.value = '';
+                linkInput.value = '';
+                if (!targetNodeId) {
+                    document.getElementById('nodeModalTitle').textContent = 'Yeni Alt Başlık';
+                    document.getElementById('nodeModalSub').textContent = `↳ "${topic.title}" ana konusuna ekleniyor`;
+                } else {
+                    const parent = findNodeRecursive(topic.children, targetNodeId);
+                    document.getElementById('nodeModalTitle').textContent = 'Alt Başlık Ekle';
+                    document.getElementById('nodeModalSub').textContent = `↳ "${parent ? parent.title : ''}" altına ekleniyor`;
+                }
+            } else {
+                const node = findNodeRecursive(topic.children, targetNodeId);
+                if (!node) return;
+                document.getElementById('nodeModalTitle').textContent = 'Alt Başlığı Düzenle';
+                document.getElementById('nodeModalSub').textContent = 'Başlık, açıklama, link veya görseli güncelle';
+                titleInput.value = node.title;
+                descInput.value = node.description || '';
+                linkInput.value = node.link || '';
+                if (node.image) {
+                    currentNodeImageBase64 = node.image;
+                    imgPreview.src = node.image;
+                    imgPreview.classList.remove('hidden');
+                    removeImgBtn.classList.remove('hidden');
+                }
+            }
+
+            const modal = document.getElementById('nodeModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => titleInput.focus(), 100);
+        }
+
+        function closeNodeModal() {
+            const modal = document.getElementById('nodeModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function handleNodeImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            compressImageFile(file, 720, (base64) => {
+                currentNodeImageBase64 = base64;
+                const prev = document.getElementById('nodeImgPreview');
+                prev.src = base64;
+                prev.classList.remove('hidden');
+                document.getElementById('removeNodeImgBtn').classList.remove('hidden');
+            });
+        }
+
+        function clearNodeImage() {
+            currentNodeImageBase64 = '';
+            document.getElementById('nodeImgPreview').classList.add('hidden');
+            document.getElementById('removeNodeImgBtn').classList.add('hidden');
+            document.getElementById('nodeImgInput').value = '';
+        }
+
+        function compressImageFile(file, maxDim, callback) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let w = img.width;
+                    let h = img.height;
+                    if (w > maxDim || h > maxDim) {
+                        if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+                        else { w = Math.round((w * maxDim) / h); h = maxDim; }
+                    }
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    callback(canvas.toDataURL('image/jpeg', 0.78));
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function saveNodeForm(event) {
+            event.preventDefault();
+            const topic = findTopic(currentTopicId);
+            if (!topic) return;
+
+            const title = document.getElementById('nodeTitleInput').value.trim();
+            const description = document.getElementById('nodeDescInput').value.trim();
+            const link = document.getElementById('nodeLinkInput').value.trim();
+            if (!title) return;
+
+            if (nodeModalState.mode === 'add') {
+                const newNode = {
+                    id: generateId('n'),
+                    title,
+                    description,
+                    link,
+                    image: currentNodeImageBase64,
+                    expanded: true,
+                    children: []
+                };
+                if (!nodeModalState.targetNodeId) {
+                    topic.children.push(newNode);
+                } else {
+                    const parent = findNodeRecursive(topic.children, nodeModalState.targetNodeId);
+                    if (parent) {
+                        if (!parent.children) parent.children = [];
+                        parent.children.push(newNode);
+                        parent.expanded = true;
+                    }
+                }
+                showToast('Alt başlık eklendi');
+            } else {
+                const node = findNodeRecursive(topic.children, nodeModalState.targetNodeId);
+                if (node) {
+                    node.title = title;
+                    node.description = description;
+                    node.link = link;
+                    node.image = currentNodeImageBase64;
+                    showToast('Değişiklikler kaydedildi');
+                }
+            }
+
+            saveAppData();
+            closeNodeModal();
+            renderTopicDetail();
+        }
+
+        // =============================================================
+        // 8. HIZLI KARALAMA KUTUSU (QUICK DROP)
+        // =============================================================
+        function openScratchpadSheet() {
+            renderScratchpadList();
+            const sheet = document.getElementById('scratchpadSheet');
+            sheet.classList.remove('hidden');
+            sheet.classList.add('flex');
+            setTimeout(() => document.getElementById('scratchpadInput').focus(), 100);
+        }
+
+        function closeScratchpadSheet() {
+            const sheet = document.getElementById('scratchpadSheet');
+            sheet.classList.add('hidden');
+            sheet.classList.remove('flex');
+            renderHomeScreen();
+        }
+
+        function addScratchpadItem(event) {
+            event.preventDefault();
+            const input = document.getElementById('scratchpadInput');
+            const val = input.value.trim();
+            if (!val) return;
+
+            const isUrl = /^https?:\/\/\S+$/i.test(val);
+            appData.scratchpad.unshift({
+                id: generateId('sc'),
+                text: isUrl ? 'Kaydedilen Link' : val,
+                link: isUrl ? val : '',
+                createdAt: Date.now()
+            });
+            input.value = '';
+            saveAppData();
+            renderScratchpadList();
+            showToast('Karalama kutusuna atıldı');
+        }
+
+        function renderScratchpadList() {
+            const list = document.getElementById('scratchpadList');
+            if (appData.scratchpad.length === 0) {
+                list.innerHTML = `<div class="text-center py-8 text-xs text-slate-400">Karalama kutun tertemiz. Aklına gelen bir notu veya linki yukarıya yazıp atabilirsin.</div>`;
+                return;
+            }
+
+            list.innerHTML = appData.scratchpad.map(item => `
+                <div class="p-3 rounded-xl bg-amber-50/70 dark:bg-amber-950/25 border border-amber-200/70 dark:border-amber-800/40 flex items-center justify-between gap-2">
+                    <div class="min-w-0 flex-1">
+                        <p class="text-xs font-semibold text-slate-800 dark:text-slate-100 break-words">${escapeHtml(item.text)}</p>
+                        ${item.link ? `<a href="${escapeHtml(item.link)}" target="_blank" class="text-[11px] text-sky-600 dark:text-sky-400 truncate block mt-0.5">${escapeHtml(item.link)}</a>` : ''}
+                    </div>
+                    <div class="flex items-center gap-1 shrink-0">
+                        <button onclick="openMoveSheetForScratch('${item.id}')" class="tap-scale px-2.5 py-1.5 rounded-lg bg-indigo-600 text-white text-[11px] font-bold">
+                            Konuya Taşı
+                        </button>
+                        <button onclick="deleteScratchItem('${item.id}')" class="tap-scale p-1.5 rounded-lg text-slate-400 hover:text-rose-500">✕</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function deleteScratchItem(id) {
+            appData.scratchpad = appData.scratchpad.filter(s => s.id !== id);
+            saveAppData();
+            renderScratchpadList();
+        }
+
+        // =============================================================
+        // 9. BAŞLIK / KARALAMA TAŞIMA (MOVE ENGINE)
+        // =============================================================
+        function openMoveSheetForScratch(scratchId) {
+            const item = appData.scratchpad.find(s => s.id === scratchId);
+            if (!item) return;
+            moveContext = { type: 'scratchpad', scratchId };
+            document.getElementById('moveItemLabel').textContent = `"${item.text}" hangi konuya taşınsın?`;
+            renderMoveTargets(null);
+            const sheet = document.getElementById('moveSheet');
+            sheet.classList.remove('hidden');
+            sheet.classList.add('flex');
+        }
+
+        function openMoveSheetForNode(nodeId) {
+            const topic = findTopic(currentTopicId);
+            if (!topic) return;
+            const node = findNodeRecursive(topic.children, nodeId);
+            if (!node) return;
+            moveContext = { type: 'node', fromTopicId: currentTopicId, nodeId };
+            document.getElementById('moveItemLabel').textContent = `"${node.title}" nereye taşınsın?`;
+            renderMoveTargets(node);
+            const sheet = document.getElementById('moveSheet');
+            sheet.classList.remove('hidden');
+            sheet.classList.add('flex');
+        }
+
+        function closeMoveSheet() {
+            const sheet = document.getElementById('moveSheet');
+            sheet.classList.add('hidden');
+            sheet.classList.remove('flex');
+        }
+
+        function renderMoveTargets(movingNode) {
+            const container = document.getElementById('moveTargetList');
+            const sortedTopics = sortTurkishAZ(appData.topics);
+
+            if (sortedTopics.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Önce ana ekrandan bir konu oluşturmalısın.</p>`;
+                return;
+            }
+
+            let html = '';
+            for (const topic of sortedTopics) {
+                // Ana konunun kendisine taşıma seçeneği
+                html += `
+                    <button onclick="executeMove('${topic.id}', null)" class="tap-scale w-full p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/90 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 flex items-center gap-2.5 text-left">
+                        <span class="text-base">${escapeHtml(topic.icon || '📁')}</span>
+                        <span class="text-xs font-extrabold text-slate-900 dark:text-white">${escapeHtml(topic.title)}</span>
+                        <span class="ml-auto text-[10px] font-bold text-indigo-600 dark:text-indigo-400">Ana Konu</span>
+                    </button>
+                `;
+
+                // Alt dallarına taşıma seçenekleri (Kendisi veya kendi alt dalı hariç!)
+                function buildSubTargets(nodes, depth) {
+                    const sorted = sortTurkishAZ(nodes || []);
+                    for (const n of sorted) {
+                        const isSelfOrChild = movingNode && (n.id === movingNode.id || isDescendant(movingNode, n.id));
+                        if (!isSelfOrChild) {
+                            html += `
+                                <button onclick="executeMove('${topic.id}', '${n.id}')" style="margin-left: ${depth * 14}px" class="tap-scale w-[calc(100%-${depth * 14}px)] p-2 rounded-lg border border-slate-200/70 dark:border-slate-800 hover:border-indigo-500 flex items-center gap-2 text-left">
+                                    <span class="text-slate-400 text-xs">↳</span>
+                                    <span class="text-xs font-semibold text-slate-700 dark:text-slate-200 truncate">${escapeHtml(n.title)}</span>
+                                </button>
+                            `;
+                            buildSubTargets(n.children, depth + 1);
+                        }
+                    }
+                }
+                buildSubTargets(topic.children, 1);
+            }
+
+            container.innerHTML = html;
+        }
+
+        function executeMove(targetTopicId, targetParentNodeId) {
+            const targetTopic = findTopic(targetTopicId);
+            if (!targetTopic || !moveContext) return;
+
+            let nodeToInsert = null;
+
+            if (moveContext.type === 'scratchpad') {
+                const idx = appData.scratchpad.findIndex(s => s.id === moveContext.scratchId);
+                if (idx === -1) return;
+                const [sc] = appData.scratchpad.splice(idx, 1);
+                nodeToInsert = {
+                    id: generateId('n'),
+                    title: sc.text,
+                    description: '',
+                    link: sc.link || '',
+                    image: '',
+                    expanded: false,
+                    children: []
+                };
+            } else if (moveContext.type === 'node') {
+                const sourceTopic = findTopic(moveContext.fromTopicId);
+                if (!sourceTopic) return;
+                nodeToInsert = removeNodeRecursive(sourceTopic.children, moveContext.nodeId);
+            }
+
+            if (!nodeToInsert) return;
+
+            if (!targetParentNodeId) {
+                targetTopic.children.push(nodeToInsert);
+            } else {
+                const parentNode = findNodeRecursive(targetTopic.children, targetParentNodeId);
+                if (parentNode) {
+                    if (!parentNode.children) parentNode.children = [];
+                    parentNode.children.push(nodeToInsert);
+                    parentNode.expanded = true;
+                } else {
+                    targetTopic.children.push(nodeToInsert);
+                }
+            }
+
+            saveAppData();
+            closeMoveSheet();
+
+            if (moveContext.type === 'scratchpad') {
+                renderScratchpadList();
+                renderHomeScreen();
+            } else if (currentTopicId) {
+                renderTopicDetail();
+            }
+
+            showToast(`"${targetTopic.title}" içine taşındı`);
+        }
+
+        // =============================================================
+        // 10. WHATSAPP UYUMLU HİYERARŞİK PAYLAŞIM
+        // =============================================================
+        function formatNodeTreeForShare(node, indent = 0) {
+            const prefix = '  '.repeat(indent) + (indent === 0 ? '📌 ' : '• ');
+            let out = `${prefix}*${node.title}*`;
+            if (node.description) out += `: ${node.description}`;
+            if (node.link) out += `\n${'  '.repeat(indent + 1)}🔗 ${node.link}`;
+            out += '\n';
+
+            if (node.children && node.children.length > 0) {
+                const sorted = sortTurkishAZ(node.children);
+                for (const c of sorted) {
+                    out += formatNodeTreeForShare(c, indent + 1);
+                }
+            }
+            return out;
+        }
+
+        function shareSubNode(nodeId) {
+            const topic = findTopic(currentTopicId);
+            if (!topic) return;
+            const node = findNodeRecursive(topic.children, nodeId);
+            if (!node) return;
+
+            const text = `*${topic.title}*\n` + formatNodeTreeForShare(node, 0).trim();
+            triggerNativeOrClipboardShare(node.title, text);
+        }
+
+        function shareEntireTopic() {
+            const topic = findTopic(currentTopicId);
+            if (!topic) return;
+
+            let text = `*${topic.icon || '📁'} ${topic.title}*\n`;
+            if (topic.description) text += `_${topic.description}_\n`;
+            text += '\n';
+
+            const sorted = sortTurkishAZ(topic.children || []);
+            if (sorted.length === 0) {
+                text += '(Henüz alt başlık eklenmemiş)';
+            } else {
+                for (const child of sorted) {
+                    text += formatNodeTreeForShare(child, 0);
+                }
+            }
+            triggerNativeOrClipboardShare(topic.title, text.trim());
+        }
+
+        function triggerNativeOrClipboardShare(title, text) {
+            if (navigator.share) {
+                navigator.share({ title: `srt notes - ${title}`, text }).catch(() => {});
+            } else {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                showToast('WhatsApp formatında panoya kopyalandı!');
+            }
+        }
+
+        // =============================================================
+        // 11. GLOBAL ARAMA
+        // =============================================================
+        function openGlobalSearch() {
+            const sheet = document.getElementById('globalSearchSheet');
+            sheet.classList.remove('hidden');
+            sheet.classList.add('flex');
+            const input = document.getElementById('globalSearchInput');
+            input.value = '';
+            runGlobalSearch('');
+            setTimeout(() => input.focus(), 100);
+        }
+
+        function closeGlobalSearch() {
+            const sheet = document.getElementById('globalSearchSheet');
+            sheet.classList.add('hidden');
+            sheet.classList.remove('flex');
+        }
+
+        function runGlobalSearch(query) {
+            const container = document.getElementById('globalSearchResults');
+            const q = query.trim().toLocaleLowerCase('tr-TR');
+
+            if (!q) {
+                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-10">Aramak istediğin kelimeyi yaz (ör: araçlar, kaplama, gta...)</p>`;
+                return;
+            }
+
+            const results = [];
+
+            for (const topic of appData.topics) {
+                if (topic.title.toLocaleLowerCase('tr-TR').includes(q) || (topic.description || '').toLocaleLowerCase('tr-TR').includes(q)) {
+                    results.push({
+                        topicId: topic.id,
+                        nodeId: null,
+                        pathLabel: `${topic.icon || '📁'} ${topic.title}`,
+                        title: topic.title,
+                        desc: topic.description || 'Ana Konu'
+                    });
+                }
+
+                function searchNodes(nodes, trail) {
+                    for (const n of (nodes || [])) {
+                        const currentTrail = `${trail} › ${n.title}`;
+                        const match = n.title.toLocaleLowerCase('tr-TR').includes(q)
+                            || (n.description || '').toLocaleLowerCase('tr-TR').includes(q)
+                            || (n.link || '').toLocaleLowerCase('tr-TR').includes(q);
+                        if (match) {
+                            results.push({
+                                topicId: topic.id,
+                                nodeId: n.id,
+                                pathLabel: `${topic.icon || '📁'} ${currentTrail}`,
+                                title: n.title,
+                                desc: n.description || n.link || ''
+                            });
+                        }
+                        searchNodes(n.children, currentTrail);
+                    }
+                }
+                searchNodes(topic.children, topic.title);
+            }
+
+            if (results.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 text-center py-10">"${escapeHtml(query)}" ile eşleşen sonuç bulunamadı.</p>`;
+                return;
+            }
+
+            container.innerHTML = results.map(r => `
+                <button onclick="jumpToSearchResult('${r.topicId}', ${r.nodeId ? `'${r.nodeId}'` : 'null'})" class="tap-scale w-full p-3 rounded-xl bg-slate-100/90 dark:bg-slate-800/80 hover:border-indigo-500 border border-transparent text-left">
+                    <div class="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 truncate">${escapeHtml(r.pathLabel)}</div>
+                    <div class="text-xs font-extrabold text-slate-900 dark:text-white mt-0.5">${escapeHtml(r.title)}</div>
+                    ${r.desc ? `<div class="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">${escapeHtml(r.desc)}</div>` : ''}
+                </button>
+            `).join('');
+        }
+
+        function jumpToSearchResult(topicId, nodeId) {
+            closeGlobalSearch();
+            openTopicDetail(topicId, nodeId);
+        }
+
+        // =============================================================
+        // 12. SİLME ONAYLARI, YEDEKLEME, LIGHTBOX & TOAST
+        // =============================================================
+        function openDeleteTopicModal() {
+            const topic = findTopic(currentTopicId);
+            if (!topic) return;
+            pendingDelete = { type: 'topic', id: topic.id };
+            document.getElementById('confirmDeleteText').textContent = `"${topic.title}" ana konusunu ve içindeki tüm alt başlıkları silmek istediğine emin misin?`;
+            const m = document.getElementById('confirmDeleteModal');
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+        }
+
+        function askDeleteNode(nodeId) {
+            const topic = findTopic(currentTopicId);
+            if (!topic) return;
+            const node = findNodeRecursive(topic.children, nodeId);
+            if (!node) return;
+            pendingDelete = { type: 'node', id: nodeId };
+            document.getElementById('confirmDeleteText').textContent = `"${node.title}" alt başlığını ve varsa altındaki maddeleri silmek istediğine emin misin?`;
+            const m = document.getElementById('confirmDeleteModal');
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+        }
+
+        function closeConfirmDelete() {
+            pendingDelete = null;
+            const m = document.getElementById('confirmDeleteModal');
+            m.classList.add('hidden');
+            m.classList.remove('flex');
+        }
+
+        function executePendingDelete() {
+            if (!pendingDelete) return;
+            if (pendingDelete.type === 'topic') {
+                appData.topics = appData.topics.filter(t => t.id !== pendingDelete.id);
+                saveAppData();
+                closeConfirmDelete();
+                goHome();
+                showToast('Konu silindi');
+            } else if (pendingDelete.type === 'node') {
+                const topic = findTopic(currentTopicId);
+                if (topic) {
+                    removeNodeRecursive(topic.children, pendingDelete.id);
+                    saveAppData();
+                }
+                closeConfirmDelete();
+                renderTopicDetail();
+                showToast('Alt başlık silindi');
+            }
+        }
+
+        function openSettingsSheet() {
+            const s = document.getElementById('settingsSheet');
+            s.classList.remove('hidden');
+            s.classList.add('flex');
+        }
+
+        function closeSettingsSheet() {
+            const s = document.getElementById('settingsSheet');
+            s.classList.add('hidden');
+            s.classList.remove('flex');
+        }
+
+        function exportBackup() {
+            const blob = new Blob([JSON.stringify(appData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `srt_notes_yedek_${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Yedek indirildi');
+        }
+
+        function importBackup(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed && Array.isArray(parsed.topics)) {
+                        appData = {
+                            topics: parsed.topics,
+                            scratchpad: Array.isArray(parsed.scratchpad) ? parsed.scratchpad : []
+                        };
+                        appData.topics.forEach(t => collapseAllNodes(t.children));
+                        saveAppData();
+                        closeSettingsSheet();
+                        goHome();
+                        showToast('Yedek geri yüklendi');
+                    } else {
+                        showToast('Geçersiz yedek dosyası');
+                    }
+                } catch (err) {
+                    showToast('Dosya okunamadı');
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function openLightbox(src) {
+            document.getElementById('lightboxImg').src = src;
+            const m = document.getElementById('lightboxModal');
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+        }
+
+        function closeLightbox() {
+            const m = document.getElementById('lightboxModal');
+            m.classList.add('hidden');
+            m.classList.remove('flex');
+        }
+
+        let toastTimer;
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.remove('opacity-0');
+            t.classList.add('opacity-100');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                t.classList.remove('opacity-100');
+                t.classList.add('opacity-0');
+            }, 2200);
+        }
+
+        // Başlatma
+        window.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            loadAppData();
+            renderHomeScreen();
+        });
+    </script>
+</body>
+</html>
