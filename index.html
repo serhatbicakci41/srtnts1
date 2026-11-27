@@ -21,32 +21,51 @@
       --accent-2: #22c55e;
       --danger: #ef4444;
       --pin: #f59e0b;
+      --alarm: #a855f7;
     }
 
     * {
       box-sizing: border-box;
       -webkit-tap-highlight-color: transparent;
+      max-width: 100%;
     }
 
-    body {
+    html, body {
       margin: 0;
       padding: 0;
       background: var(--bg);
       color: var(--text);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       min-height: 100dvh;
+      overflow-x: hidden;
+      touch-action: pan-y;
+    }
+
+    body {
       display: flex;
       flex-direction: column;
+      align-items: center;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 480px;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      background: var(--bg);
+      overflow-x: hidden;
     }
 
     header {
       position: sticky;
       top: 0;
       z-index: 20;
-      background: rgba(11, 15, 23, 0.92);
+      background: rgba(11, 15, 23, 0.94);
       backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border);
-      padding: 12px 14px;
+      padding: 11px 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -56,23 +75,33 @@
     .brand {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 9px;
       font-weight: 700;
-      font-size: 17px;
+      font-size: 16px;
       letter-spacing: 0.2px;
+      cursor: pointer;
+      min-width: 0;
     }
 
     .brand img {
-      width: 28px;
-      height: 28px;
+      width: 26px;
+      height: 26px;
       border-radius: 7px;
       object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    .brand-title {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .header-actions {
       display: flex;
       align-items: center;
       gap: 6px;
+      flex-shrink: 0;
     }
 
     button {
@@ -80,17 +109,18 @@
       color: var(--text);
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 8px 11px;
-      font-size: 13px;
+      padding: 7px 10px;
+      font-size: 12.5px;
       font-weight: 600;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 5px;
+      user-select: none;
     }
 
     button:active {
-      transform: scale(0.98);
+      transform: scale(0.97);
     }
 
     button.primary {
@@ -113,19 +143,24 @@
 
     main {
       flex: 1;
-      padding: 14px 14px 110px;
-      max-width: 900px;
+      padding: 12px 12px 104px;
       width: 100%;
-      margin: 0 auto;
+    }
+
+    .hint-bar {
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 10px;
     }
 
     /* 4'lü Ana Ekran Izgarası */
     .grid-4 {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 14px 10px;
+      gap: 12px 8px;
       justify-items: center;
-      padding-top: 6px;
+      padding-top: 4px;
     }
 
     .app-tile {
@@ -137,24 +172,26 @@
       text-align: center;
       cursor: pointer;
       user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
     }
 
     .app-icon-wrap {
       position: relative;
-      width: 48px;
-      height: 48px;
+      width: 46px;
+      height: 46px;
       border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 22px;
+      font-size: 21px;
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
       overflow: visible;
     }
 
     .app-icon-wrap img {
-      width: 48px;
-      height: 48px;
+      width: 46px;
+      height: 46px;
       border-radius: 14px;
       object-fit: cover;
     }
@@ -165,9 +202,9 @@
       right: -6px;
       background: var(--pin);
       color: #111;
-      font-size: 11px;
-      width: 18px;
-      height: 18px;
+      font-size: 10px;
+      width: 17px;
+      height: 17px;
       border-radius: 999px;
       display: flex;
       align-items: center;
@@ -176,8 +213,8 @@
     }
 
     .app-title {
-      margin-top: 7px;
-      font-size: 12px;
+      margin-top: 6px;
+      font-size: 11.5px;
       line-height: 1.25;
       font-weight: 600;
       word-break: break-word;
@@ -189,7 +226,7 @@
 
     .app-count {
       margin-top: 2px;
-      font-size: 10.5px;
+      font-size: 10px;
       color: var(--muted);
     }
 
@@ -198,13 +235,13 @@
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       background: var(--surface);
       border: 1px solid var(--border);
-      padding: 9px 12px;
+      padding: 8px 10px;
       border-radius: 12px;
-      margin-bottom: 12px;
-      font-size: 13px;
+      margin-bottom: 10px;
+      font-size: 12px;
     }
 
     .crumb {
@@ -223,41 +260,71 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 14px;
-      padding: 12px;
-      margin-bottom: 10px;
+      padding: 11px;
+      margin-bottom: 9px;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
     }
 
     .node-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
+      gap: 6px;
     }
 
     .node-title-btn {
       background: transparent;
       border: none;
       padding: 2px 0;
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 700;
       text-align: left;
       flex: 1;
       justify-content: flex-start;
+      min-width: 0;
+      word-break: break-word;
+    }
+
+    .node-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 6px;
+    }
+
+    .badge {
+      font-size: 10.5px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .badge.alarm {
+      color: #e9d5ff;
+      border-color: rgba(168, 85, 247, 0.45);
+      background: rgba(168, 85, 247, 0.16);
     }
 
     .node-body {
       margin-top: 8px;
-      font-size: 13.5px;
+      font-size: 13px;
       color: #cbd5e1;
       white-space: pre-wrap;
       line-height: 1.45;
+      word-break: break-word;
+      user-select: text;
+      -webkit-user-select: text;
     }
 
     .node-link {
       display: inline-block;
       margin-top: 6px;
       color: var(--accent);
-      font-size: 12.5px;
+      font-size: 12px;
       word-break: break-all;
       text-decoration: underline;
     }
@@ -265,49 +332,41 @@
     .node-img {
       margin-top: 8px;
       max-width: 100%;
-      max-height: 220px;
+      max-height: 210px;
       border-radius: 10px;
       display: block;
     }
 
-    .node-toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 10px;
-      padding-top: 8px;
-      border-top: 1px solid var(--border);
-    }
-
-    .node-toolbar button {
-      padding: 5px 8px;
-      font-size: 11.5px;
+    .node-audio {
+      margin-top: 8px;
+      width: 100%;
+      height: 36px;
     }
 
     .children-box {
-      margin-top: 10px;
-      padding-left: 12px;
+      margin-top: 9px;
+      padding-left: 10px;
       border-left: 2px solid rgba(56, 189, 248, 0.25);
     }
 
     /* Hızlı Karalama Sabit Kutu */
     .quick-drop {
       position: fixed;
-      left: 0;
-      right: 0;
+      left: 50%;
+      transform: translateX(-50%);
       bottom: 0;
       z-index: 25;
+      width: 100%;
+      max-width: 480px;
       background: rgba(19, 26, 38, 0.96);
       backdrop-filter: blur(12px);
       border-top: 1px solid var(--border);
-      padding: 10px 12px;
+      padding: 9px 10px;
     }
 
     .quick-drop-inner {
-      max-width: 900px;
-      margin: 0 auto;
       display: flex;
-      gap: 8px;
+      gap: 7px;
       align-items: center;
     }
 
@@ -317,26 +376,26 @@
       color: var(--text);
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 9px 11px;
-      font-size: 14px;
+      padding: 8px 10px;
+      font-size: 13.5px;
       font-family: inherit;
     }
 
     textarea {
-      min-height: 78px;
+      min-height: 74px;
       resize: vertical;
     }
 
-    /* Modal */
+    /* Modal & Long-Press Sheet */
     .modal-backdrop {
       position: fixed;
       inset: 0;
       z-index: 50;
-      background: rgba(0, 0, 0, 0.7);
+      background: rgba(0, 0, 0, 0.72);
       display: none;
-      align-items: center;
+      align-items: flex-end;
       justify-content: center;
-      padding: 14px;
+      padding: 10px;
     }
 
     .modal-backdrop.open {
@@ -346,26 +405,26 @@
     .modal {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 16px;
+      border-radius: 18px;
       width: 100%;
       max-width: 460px;
-      max-height: 88dvh;
+      max-height: 86dvh;
       overflow-y: auto;
-      padding: 16px;
+      padding: 15px;
     }
 
     .modal h3 {
-      margin: 0 0 12px;
-      font-size: 16px;
+      margin: 0 0 11px;
+      font-size: 15.5px;
     }
 
     .field {
-      margin-bottom: 11px;
+      margin-bottom: 10px;
     }
 
     .field label {
       display: block;
-      font-size: 12px;
+      font-size: 11.5px;
       color: var(--muted);
       margin-bottom: 4px;
     }
@@ -374,42 +433,84 @@
       display: flex;
       justify-content: flex-end;
       gap: 8px;
-      margin-top: 14px;
+      margin-top: 13px;
+    }
+
+    .menu-list {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .menu-item {
+      width: 100%;
+      justify-content: flex-start;
+      padding: 10px 12px;
+      font-size: 13px;
+      border-radius: 11px;
+    }
+
+    .emoji-picker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .emoji-btn {
+      padding: 6px 8px;
+      font-size: 16px;
+      border-radius: 8px;
+      background: var(--bg);
+    }
+
+    .audio-rec-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
     .empty-msg {
       text-align: center;
       color: var(--muted);
-      padding: 36px 12px;
-      font-size: 14px;
+      padding: 34px 12px;
+      font-size: 13px;
     }
   </style>
 </head>
 <body>
-  <header>
-    <div class="brand" onclick="goHome()" style="cursor:pointer;">
-      <img src="icon-192.png" alt="srt notes" />
-      <span>srt notes</span>
-    </div>
-    <div class="header-actions" id="headerActions"></div>
-  </header>
+  <div class="app-shell">
+    <header>
+      <div class="brand" onclick="goHome()">
+        <img src="icon-192.png" alt="srt notes" />
+        <span class="brand-title" id="headerTitle">srt notes</span>
+      </div>
+      <div class="header-actions" id="headerActions"></div>
+    </header>
 
-  <main id="app"></main>
+    <main id="app"></main>
 
-  <div class="quick-drop">
-    <div class="quick-drop-inner">
-      <input id="quickInput" type="text" placeholder="Hızlı karalama veya link bırak..." onkeydown="if(event.key==='Enter') addQuickScratch()" />
-      <button class="primary" onclick="addQuickScratch()">At</button>
+    <div class="quick-drop">
+      <div class="quick-drop-inner">
+        <input id="quickInput" type="text" placeholder="Hızlı karalama veya link bırak..." onkeydown="if(event.key==='Enter') addQuickScratch()" />
+        <button class="primary" onclick="addQuickScratch()">At</button>
+      </div>
     </div>
   </div>
 
-  <!-- Genel Modal -->
   <div class="modal-backdrop" id="modalBackdrop">
     <div class="modal" id="modalBox"></div>
   </div>
 
   <script>
-    const STORAGE_KEY = "srt_notes_v1_data";
+    const LEGACY_KEY = "srt_notes_v1_data";
+    const DB_NAME = "srt_notes_db";
+    const DB_VERSION = 1;
+    const STORE_NAME = "app_state";
+    const STATE_KEY = "main_state";
+
+    const EMOJI_CHOICES = ["📌", "⚡", "📝", "🎯", "🔥", "💡", "🥁", "🍺", "🚗", "🎮", "🦅", "⏰", "🎙️", "📷", "📁", "✅"];
 
     const SMART_ICONS = [
       { keys: ["gta", "oyun", "ps5", "fc", "nioh", "oyuncu"], icon: "🎮", color: "#6366f1" },
@@ -440,50 +541,130 @@
       return "n_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 7);
     }
 
-    function defaultData() {
-      return {
-        topics: [
-          {
-            id: uid(),
-            title: "Hızlı Karalama",
-            pinned: true,
-            customIcon: "",
-            icon: "⚡",
-            color: "#eab308",
-            expanded: false,
-            children: []
+    function defaultTopics() {
+      return [
+        {
+          id: uid(),
+          title: "Hızlı Karalama",
+          pinned: true,
+          customIcon: "",
+          icon: "⚡",
+          color: "#eab308",
+          expanded: false,
+          children: []
+        }
+      ];
+    }
+
+    let db = null;
+    let state = {
+      topics: defaultTopics(),
+      currentTopicId: null,
+      pathIds: []
+    };
+    let modalOpen = false;
+    let suppressNextHistoryPop = false;
+    let activeRecorder = null;
+    let recordedChunks = [];
+    let pendingAudioData = "";
+
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = (e) => {
+          const database = e.target.result;
+          if (!database.objectStoreNames.contains(STORE_NAME)) {
+            database.createObjectStore(STORE_NAME);
           }
-        ],
-        currentTopicId: null,
-        pathIds: []
-      };
-    }
-
-    let state = loadData();
-
-    function loadData() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return defaultData();
-        const parsed = JSON.parse(raw);
-        if (!Array.isArray(parsed.topics)) return defaultData();
-        return {
-          topics: parsed.topics,
-          currentTopicId: null,
-          pathIds: []
         };
-      } catch {
-        return defaultData();
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    function idbGet(key) {
+      return new Promise((resolve, reject) => {
+        if (!db) return resolve(null);
+        const tx = db.transaction(STORE_NAME, "readonly");
+        const req = tx.objectStore(STORE_NAME).get(key);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    function idbSet(key, val) {
+      return new Promise((resolve, reject) => {
+        if (!db) return resolve();
+        const tx = db.transaction(STORE_NAME, "readwrite");
+        const req = tx.objectStore(STORE_NAME).put(val, key);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function initStorage() {
+      try {
+        db = await openDB();
+        const saved = await idbGet(STATE_KEY);
+        if (saved && Array.isArray(saved.topics)) {
+          state.topics = saved.topics;
+          return;
+        }
+        const legacyRaw = localStorage.getItem(LEGACY_KEY);
+        if (legacyRaw) {
+          const parsed = JSON.parse(legacyRaw);
+          if (Array.isArray(parsed.topics)) {
+            state.topics = parsed.topics;
+            await idbSet(STATE_KEY, { topics: state.topics });
+            return;
+          }
+        }
+      } catch (err) {
+        console.error("Storage init error:", err);
       }
     }
 
-    function saveData() {
+    async function saveData() {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ topics: state.topics }));
+        await idbSet(STATE_KEY, { topics: state.topics });
       } catch (e) {
-        alert("Depolama alanı dolu olabilir (görseller çok büyükse küçültülmüş halini kullan).");
+        alert("Kayıt sırasında bir sorun oluştu.");
       }
     }
+
+    function pushNavState(pushToBrowser = true) {
+      if (!pushToBrowser) return;
+      try {
+        history.pushState({
+          topicId: state.currentTopicId,
+          pathIds: [...state.pathIds],
+          modalOpen
+        }, "");
+      } catch (_) {}
+    }
+
+    window.addEventListener("popstate", () => {
+      if (suppressNextHistoryPop) {
+        suppressNextHistoryPop = false;
+        return;
+      }
+      if (modalOpen) {
+        closeModal(false);
+        return;
+      }
+      if (state.pathIds.length > 1) {
+        state.pathIds.pop();
+        render();
+        return;
+      }
+      if (state.currentTopicId !== null) {
+        state.currentTopicId = null;
+        state.pathIds = [];
+        render();
+        return;
+      }
+      pushNavState(true);
+    });
 
     function countDescendants(node) {
       if (!node.children || !node.children.length) return 0;
@@ -496,16 +677,18 @@
       return [...list].sort((a, b) => a.title.localeCompare(b.title, "tr", { sensitivity: "base" }));
     }
 
-    function goHome() {
+    function goHome(push = true) {
       state.currentTopicId = null;
       state.pathIds = [];
       render();
+      pushNavState(push);
     }
 
-    function openTopic(topicId) {
+    function openTopic(topicId, push = true) {
       state.currentTopicId = topicId;
       state.pathIds = [topicId];
       render();
+      pushNavState(push);
     }
 
     function getCurrentTopic() {
@@ -540,7 +723,7 @@
       return trail;
     }
 
-    function addQuickScratch() {
+    async function addQuickScratch() {
       const input = document.getElementById("quickInput");
       const text = (input.value || "").trim();
       if (!text) return;
@@ -567,12 +750,17 @@
         note: isUrl ? "" : text,
         link: isUrl ? text : "",
         image: "",
+        audio: "",
+        alarmAt: "",
+        alarmFired: false,
+        customIcon: "",
+        icon: "",
         expanded: false,
         children: []
       });
 
       input.value = "";
-      saveData();
+      await saveData();
       render();
     }
 
@@ -598,21 +786,79 @@
       });
     }
 
-    function openModal(html) {
+    function openModal(html, push = true) {
       const box = document.getElementById("modalBox");
       box.innerHTML = html;
       document.getElementById("modalBackdrop").classList.add("open");
+      modalOpen = true;
+      pushNavState(push);
     }
 
-    function closeModal() {
+    function closeModal(rewindHistory = true) {
+      stopAudioRecordingIfAny();
       document.getElementById("modalBackdrop").classList.remove("open");
+      const wasOpen = modalOpen;
+      modalOpen = false;
+      if (wasOpen && rewindHistory && history.state && history.state.modalOpen) {
+        suppressNextHistoryPop = true;
+        history.back();
+      }
     }
 
     document.getElementById("modalBackdrop").addEventListener("click", (e) => {
-      if (e.target.id === "modalBackdrop") closeModal();
+      if (e.target.id === "modalBackdrop") closeModal(true);
     });
 
+    function attachLongPress(el, onLongPress, onClick) {
+      let timer = null;
+      let triggered = false;
+      let startX = 0;
+      let startY = 0;
+
+      const clearTimer = () => {
+        if (timer) {
+          clearTimeout(timer);
+          timer = null;
+        }
+      };
+
+      el.addEventListener("pointerdown", (e) => {
+        if (e.button !== undefined && e.button !== 0) return;
+        triggered = false;
+        startX = e.clientX;
+        startY = e.clientY;
+        clearTimer();
+        timer = setTimeout(() => {
+          triggered = true;
+          if (navigator.vibrate) navigator.vibrate(25);
+          onLongPress(e);
+        }, 520);
+      });
+
+      el.addEventListener("pointermove", (e) => {
+        if (Math.abs(e.clientX - startX) > 10 || Math.abs(e.clientY - startY) > 10) {
+          clearTimer();
+        }
+      });
+
+      el.addEventListener("pointerup", (e) => {
+        clearTimer();
+        if (!triggered && onClick) onClick(e);
+      });
+
+      el.addEventListener("pointercancel", clearTimer);
+      el.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        clearTimer();
+        if (!triggered) onLongPress(e);
+      });
+    }
+
     function openNewTopicModal() {
+      const emojiHtml = EMOJI_CHOICES.map(em =>
+        `<button type="button" class="emoji-btn" onclick="document.getElementById('mTopicEmoji').value='${em}'">${em}</button>`
+      ).join("");
+
       openModal(`
         <h3>Yeni Konu Aç</h3>
         <div class="field">
@@ -620,14 +866,19 @@
           <input id="mTopicTitle" type="text" placeholder="Örn: Davul, GTA 6, Araç..." />
         </div>
         <div class="field">
-          <label>Özel Görsel (İsteğe bağlı - boş bırakılırsa otomatik ikon seçilir)</label>
+          <label>Emoji İkon (Boş bırakılırsa otomatik seçilir)</label>
+          <input id="mTopicEmoji" type="text" placeholder="Örn: 🥁 veya 📌" />
+          <div class="emoji-picker">${emojiHtml}</div>
+        </div>
+        <div class="field">
+          <label>Özel Galeri Görseli (İsteğe bağlı)</label>
           <input id="mTopicImg" type="file" accept="image/*" />
         </div>
         <div class="field">
           <label><input id="mTopicPin" type="checkbox" style="width:auto; margin-right:6px;" />En başa sabitle (📌)</label>
         </div>
         <div class="modal-footer">
-          <button onclick="closeModal()">İptal</button>
+          <button onclick="closeModal(true)">İptal</button>
           <button class="primary" onclick="saveNewTopic()">Oluştur</button>
         </div>
       `);
@@ -637,6 +888,7 @@
       const title = (document.getElementById("mTopicTitle").value || "").trim();
       if (!title) return alert("Konu adı yazmalısın.");
       const pinned = document.getElementById("mTopicPin").checked;
+      const chosenEmoji = (document.getElementById("mTopicEmoji").value || "").trim();
       const file = document.getElementById("mTopicImg").files[0];
       let customIcon = "";
       if (file) customIcon = await compressImage(file, 240, 0.8);
@@ -647,14 +899,163 @@
         title,
         pinned,
         customIcon,
-        icon: smart.icon,
+        icon: chosenEmoji || smart.icon,
         color: smart.color,
         expanded: false,
         children: []
       });
-      saveData();
-      closeModal();
+      await saveData();
+      closeModal(true);
       render();
+    }
+
+    function openTopicLongPressMenu(topicId) {
+      const topic = state.topics.find(t => t.id === topicId);
+      if (!topic) return;
+
+      openModal(`
+        <h3>${escapeHtml(topic.title)}</h3>
+        <div class="menu-list">
+          <button class="menu-item" onclick="closeModal(true); openTopic('${topic.id}')">📂 Konuyu Aç</button>
+          <button class="menu-item" onclick="closeModal(true); togglePinTopicById('${topic.id}')">${topic.pinned ? "📌 Sabiti Kaldır" : "📌 En Başa Sabitle"}</button>
+          <button class="menu-item" onclick="closeModal(true); openIconCustomizer('topic', '${topic.id}')">🎨 İkon / Emoji / Galeri Değiştir</button>
+          <button class="menu-item" onclick="closeModal(true); shareTopicByIdWA('${topic.id}')">📤 WhatsApp Paylaş</button>
+          <button class="menu-item danger" onclick="closeModal(true); deleteTopicById('${topic.id}')">🗑️ Konuyu Sil</button>
+        </div>
+      `);
+    }
+
+    async function togglePinTopicById(topicId) {
+      const t = state.topics.find(x => x.id === topicId);
+      if (!t) return;
+      t.pinned = !t.pinned;
+      await saveData();
+      render();
+    }
+
+    async function deleteTopicById(topicId) {
+      const t = state.topics.find(x => x.id === topicId);
+      if (!t) return;
+      if (!confirm(`"${t.title}" konusu tamamen silinsin mi?`)) return;
+      state.topics = state.topics.filter(x => x.id !== topicId);
+      if (state.currentTopicId === topicId) {
+        state.currentTopicId = null;
+        state.pathIds = [];
+      }
+      await saveData();
+      render();
+    }
+
+    function openIconCustomizer(targetType, targetId) {
+      const emojiHtml = EMOJI_CHOICES.map(em =>
+        `<button type="button" class="emoji-btn" onclick="applyEmojiIcon('${targetType}', '${targetId}', '${em}')">${em}</button>`
+      ).join("");
+
+      openModal(`
+        <h3>İkon Seç</h3>
+        <div class="field">
+          <label>Emoji Seç</label>
+          <div class="emoji-picker">${emojiHtml}</div>
+        </div>
+        <div class="field">
+          <label>Veya Galeriden Görsel Yükle</label>
+          <input id="mCustomIconFile" type="file" accept="image/*" onchange="applyGalleryIcon('${targetType}', '${targetId}', this.files[0])" />
+        </div>
+        <div class="modal-footer">
+          <button onclick="closeModal(true)">Kapat</button>
+        </div>
+      `);
+    }
+
+    async function applyEmojiIcon(targetType, targetId, emoji) {
+      if (targetType === "topic") {
+        const t = state.topics.find(x => x.id === targetId);
+        if (t) {
+          t.icon = emoji;
+          t.customIcon = "";
+        }
+      } else {
+        const topic = getCurrentTopic();
+        const found = topic && findNodeRecursive(topic.children, targetId);
+        if (found) {
+          found.node.icon = emoji;
+          found.node.customIcon = "";
+        }
+      }
+      await saveData();
+      closeModal(true);
+      render();
+    }
+
+    async function applyGalleryIcon(targetType, targetId, file) {
+      if (!file) return;
+      const imgData = await compressImage(file, 240, 0.8);
+      if (targetType === "topic") {
+        const t = state.topics.find(x => x.id === targetId);
+        if (t) t.customIcon = imgData;
+      } else {
+        const topic = getCurrentTopic();
+        const found = topic && findNodeRecursive(topic.children, targetId);
+        if (found) found.node.customIcon = imgData;
+      }
+      await saveData();
+      closeModal(true);
+      render();
+    }
+
+    function stopAudioRecordingIfAny() {
+      if (activeRecorder && activeRecorder.state !== "inactive") {
+        try { activeRecorder.stop(); } catch (_) {}
+      }
+      activeRecorder = null;
+    }
+
+    async function toggleAudioRecord(previewId) {
+      const statusEl = document.getElementById("recStatus");
+      const previewEl = document.getElementById(previewId);
+
+      if (activeRecorder && activeRecorder.state === "recording") {
+        activeRecorder.stop();
+        if (statusEl) statusEl.textContent = "Kaydediliyor...";
+        return;
+      }
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        alert("Bu cihaz/tarayıcı ses kaydını desteklemiyor.");
+        return;
+      }
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        recordedChunks = [];
+        const mimeType = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "";
+        activeRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+
+        activeRecorder.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) recordedChunks.push(e.data);
+        };
+
+        activeRecorder.onstop = () => {
+          stream.getTracks().forEach(tr => tr.stop());
+          const blob = new Blob(recordedChunks, { type: activeRecorder.mimeType || "audio/webm" });
+          const reader = new FileReader();
+          reader.onload = () => {
+            pendingAudioData = reader.result;
+            if (previewEl) {
+              previewEl.src = pendingAudioData;
+              previewEl.style.display = "block";
+            }
+            if (statusEl) statusEl.textContent = "Ses kaydı hazır";
+          };
+          reader.readAsDataURL(blob);
+          activeRecorder = null;
+        };
+
+        activeRecorder.start();
+        if (statusEl) statusEl.textContent = "Kayıt alınıyor... (Bitirmek için tekrar bas)";
+      } catch (err) {
+        alert("Mikrofon izni verilmedi veya açılamadı.");
+      }
     }
 
     function openNodeModal(parentId, editNodeId = null) {
@@ -666,6 +1067,8 @@
         const found = findNodeRecursive(topic.children, editNodeId);
         if (found) existing = found.node;
       }
+
+      pendingAudioData = existing ? (existing.audio || "") : "";
 
       openModal(`
         <h3>${existing ? "Maddeyi Düzenle" : "Yeni Alt Başlık / Madde Ekle"}</h3>
@@ -682,11 +1085,24 @@
           <input id="mNodeLink" type="url" value="${escapeAttr(existing ? (existing.link || "") : "")}" placeholder="https://..." />
         </div>
         <div class="field">
+          <label>Hatırlatıcı Alarm (İsteğe bağlı)</label>
+          <input id="mNodeAlarm" type="datetime-local" value="${escapeAttr(existing ? (existing.alarmAt || "") : "")}" />
+        </div>
+        <div class="field">
+          <label>Ses Kaydı</label>
+          <div class="audio-rec-row">
+            <button type="button" onclick="toggleAudioRecord('mAudioPreview')">🎙️ Kaydet / Durdur</button>
+            <button type="button" class="danger" onclick="pendingAudioData=''; document.getElementById('mAudioPreview').style.display='none'; document.getElementById('recStatus').textContent='Ses temizlendi';">Sesi Sil</button>
+            <span id="recStatus" style="font-size:11.5px; color:var(--muted);">${pendingAudioData ? "Mevcut ses kaydı var" : ""}</span>
+          </div>
+          <audio id="mAudioPreview" controls class="node-audio" src="${escapeAttr(pendingAudioData)}" style="display:${pendingAudioData ? "block" : "none"};"></audio>
+        </div>
+        <div class="field">
           <label>Görsel Ekle (Otomatik sıkıştırılır)</label>
           <input id="mNodeImg" type="file" accept="image/*" />
         </div>
         <div class="modal-footer">
-          <button onclick="closeModal()">İptal</button>
+          <button onclick="closeModal(true)">İptal</button>
           <button class="primary" onclick="saveNode('${parentId}', ${editNodeId ? `'${editNodeId}'` : "null"})">Kaydet</button>
         </div>
       `);
@@ -701,6 +1117,7 @@
       const note = (document.getElementById("mNodeNote").value || "").trim();
       let link = (document.getElementById("mNodeLink").value || "").trim();
       if (link && !/^https?:\/\//i.test(link)) link = "https://" + link;
+      const alarmAt = document.getElementById("mNodeAlarm").value || "";
 
       const file = document.getElementById("mNodeImg").files[0];
       let imgData = null;
@@ -712,6 +1129,11 @@
           found.node.title = title;
           found.node.note = note;
           found.node.link = link;
+          found.node.audio = pendingAudioData;
+          if (found.node.alarmAt !== alarmAt) {
+            found.node.alarmAt = alarmAt;
+            found.node.alarmFired = false;
+          }
           if (imgData) found.node.image = imgData;
         }
       } else {
@@ -725,14 +1147,43 @@
           note,
           link,
           image: imgData || "",
+          audio: pendingAudioData,
+          alarmAt,
+          alarmFired: false,
+          customIcon: "",
+          icon: "",
           expanded: false,
           children: []
         });
       }
 
-      saveData();
-      closeModal();
+      if (alarmAt && "Notification" in window && Notification.permission === "default") {
+        try { await Notification.requestPermission(); } catch (_) {}
+      }
+
+      await saveData();
+      closeModal(true);
       render();
+    }
+
+    function openNodeLongPressMenu(nodeId) {
+      const topic = getCurrentTopic();
+      if (!topic) return;
+      const found = findNodeRecursive(topic.children, nodeId);
+      if (!found) return;
+
+      openModal(`
+        <h3>${escapeHtml(found.node.title)}</h3>
+        <div class="menu-list">
+          <button class="menu-item" onclick="closeModal(true); drillIntoNode('${nodeId}')">➡️ İçine Gir</button>
+          <button class="menu-item" onclick="closeModal(true); openNodeModal('${nodeId}')">➕ Alt Dal Ekle</button>
+          <button class="menu-item" onclick="closeModal(true); openNodeModal(null, '${nodeId}')">✏️ Düzenle / Alarm / Ses</button>
+          <button class="menu-item" onclick="closeModal(true); openIconCustomizer('node', '${nodeId}')">🎨 İkon / Emoji Seç</button>
+          <button class="menu-item" onclick="closeModal(true); openMoveModal('${nodeId}')">📁 Başka Konuya Taşı</button>
+          <button class="menu-item success" onclick="closeModal(true); shareNodeWA('${nodeId}')">📤 WhatsApp Paylaş</button>
+          <button class="menu-item danger" onclick="closeModal(true); deleteNode('${nodeId}')">🗑️ Sil</button>
+        </div>
+      `);
     }
 
     function findNodeRecursive(list, targetId, parentList = null) {
@@ -745,25 +1196,25 @@
       return null;
     }
 
-    function toggleExpand(nodeId) {
+    async function toggleExpand(nodeId) {
       const topic = getCurrentTopic();
       if (!topic) return;
       const found = findNodeRecursive(topic.children, nodeId);
       if (found) {
         found.node.expanded = !found.node.expanded;
-        saveData();
+        await saveData();
         render();
       }
     }
 
-    function deleteNode(nodeId) {
+    async function deleteNode(nodeId) {
       const topic = getCurrentTopic();
       if (!topic) return;
       const found = findNodeRecursive(topic.children, nodeId);
       if (!found) return;
       if (!confirm(`"${found.node.title}" ve alt dalları silinsin mi?`)) return;
       found.list.splice(found.index, 1);
-      saveData();
+      await saveData();
       render();
     }
 
@@ -784,13 +1235,13 @@
           <select id="mMoveTarget">${options}</select>
         </div>
         <div class="modal-footer">
-          <button onclick="closeModal()">İptal</button>
+          <button onclick="closeModal(true)">İptal</button>
           <button class="primary" onclick="confirmMove('${nodeId}')">Taşı</button>
         </div>
       `);
     }
 
-    function confirmMove(nodeId) {
+    async function confirmMove(nodeId) {
       const topic = getCurrentTopic();
       const targetTopicId = document.getElementById("mMoveTarget").value;
       const targetTopic = state.topics.find(t => t.id === targetTopicId);
@@ -803,26 +1254,9 @@
       moved.expanded = false;
       targetTopic.children.push(moved);
 
-      saveData();
-      closeModal();
+      await saveData();
+      closeModal(true);
       render();
-    }
-
-    function togglePinCurrentTopic() {
-      const topic = getCurrentTopic();
-      if (!topic) return;
-      topic.pinned = !topic.pinned;
-      saveData();
-      render();
-    }
-
-    function deleteCurrentTopic() {
-      const topic = getCurrentTopic();
-      if (!topic) return;
-      if (!confirm(`"${topic.title}" konusu tamamen silinsin mi?`)) return;
-      state.topics = state.topics.filter(t => t.id !== topic.id);
-      saveData();
-      goHome();
     }
 
     function formatNodeForWhatsApp(node, depth = 0) {
@@ -830,6 +1264,7 @@
       let out = `${indent}• *${node.title}*`;
       if (node.note) out += `\n${indent}  ${node.note}`;
       if (node.link) out += `\n${indent}  🔗 ${node.link}`;
+      if (node.alarmAt) out += `\n${indent}  ⏰ ${node.alarmAt.replace("T", " ")}`;
       if (node.children && node.children.length) {
         for (const ch of sortTr(node.children)) {
           out += `\n` + formatNodeForWhatsApp(ch, depth + 1);
@@ -851,8 +1286,8 @@
       shareToWhatsApp(formatNodeForWhatsApp(found.node, 0));
     }
 
-    function shareTopicWA() {
-      const topic = getCurrentTopic();
+    function shareTopicByIdWA(topicId) {
+      const topic = state.topics.find(t => t.id === topicId);
       if (!topic) return;
       let text = `*${topic.title}*\n`;
       for (const ch of sortTr(topic.children || [])) {
@@ -872,19 +1307,60 @@
     function importBackup(file) {
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = () => {
+      reader.onload = async () => {
         try {
           const parsed = JSON.parse(reader.result);
           if (!Array.isArray(parsed.topics)) throw new Error();
           state.topics = parsed.topics;
-          saveData();
-          goHome();
+          await saveData();
+          goHome(true);
           alert("Yedek geri yüklendi.");
         } catch {
           alert("Geçersiz JSON yedek dosyası.");
         }
       };
       reader.readAsText(file);
+    }
+
+    function playAlarmBeep() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = 880;
+        gain.gain.value = 0.15;
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        setTimeout(() => { osc.stop(); ctx.close(); }, 600);
+      } catch (_) {}
+    }
+
+    async function checkAlarms() {
+      const now = Date.now();
+      let changed = false;
+
+      const scan = (nodes) => {
+        for (const n of nodes || []) {
+          if (n.alarmAt && !n.alarmFired) {
+            const targetTime = new Date(n.alarmAt).getTime();
+            if (!Number.isNaN(targetTime) && now >= targetTime) {
+              n.alarmFired = true;
+              changed = true;
+              playAlarmBeep();
+              if ("Notification" in window && Notification.permission === "granted") {
+                try { new Notification("srt notes Alarm", { body: n.title }); } catch (_) {}
+              }
+              alert(`⏰ Hatırlatıcı: ${n.title}${n.note ? "\n" + n.note : ""}`);
+            }
+          }
+          if (n.children && n.children.length) scan(n.children);
+        }
+      };
+
+      for (const t of state.topics) scan(t.children);
+      if (changed) await saveData();
     }
 
     function escapeHtml(str) {
@@ -900,11 +1376,13 @@
     }
 
     function render() {
+      const headerTitle = document.getElementById("headerTitle");
       const headerActions = document.getElementById("headerActions");
       const app = document.getElementById("app");
       const currentTopic = getCurrentTopic();
 
       if (!currentTopic) {
+        headerTitle.textContent = "srt notes";
         headerActions.innerHTML = `
           <button onclick="exportBackup()">Yedek</button>
           <button onclick="document.getElementById('importFile').click()">İçe Al</button>
@@ -922,32 +1400,39 @@
         }
 
         app.innerHTML = `
-          <div class="grid-4">
-            ${ordered.map(t => {
-              const cnt = countDescendants(t);
-              const iconHtml = t.customIcon
-                ? `<img src="${t.customIcon}" alt="" />`
-                : `<span>${escapeHtml(t.icon || "📌")}</span>`;
-              return `
-                <div class="app-tile" onclick="openTopic('${t.id}')">
-                  <div class="app-icon-wrap" style="background:${t.customIcon ? "transparent" : (t.color || "#2563eb")}">
-                    ${iconHtml}
-                    ${t.pinned ? `<span class="pin-badge">📌</span>` : ""}
-                  </div>
-                  <div class="app-title">${escapeHtml(t.title)}</div>
-                  <div class="app-count">(${cnt})</div>
-                </div>
-              `;
-            }).join("")}
-          </div>
+          <div class="hint-bar">Konulara veya maddelere basılı tutarak menüyü açabilirsin</div>
+          <div class="grid-4" id="topicsGrid"></div>
         `;
+
+        const grid = document.getElementById("topicsGrid");
+        ordered.forEach(t => {
+          const cnt = countDescendants(t);
+          const iconHtml = t.customIcon
+            ? `<img src="${escapeAttr(t.customIcon)}" alt="" />`
+            : `<span>${escapeHtml(t.icon || "📌")}</span>`;
+
+          const tile = document.createElement("div");
+          tile.className = "app-tile";
+          tile.innerHTML = `
+            <div class="app-icon-wrap" style="background:${t.customIcon ? "transparent" : (t.color || "#2563eb")}">
+              ${iconHtml}
+              ${t.pinned ? `<span class="pin-badge">📌</span>` : ""}
+            </div>
+            <div class="app-title">${escapeHtml(t.title)}</div>
+            <div class="app-count">(${cnt})</div>
+          `;
+          attachLongPress(
+            tile,
+            () => openTopicLongPressMenu(t.id),
+            () => openTopic(t.id)
+          );
+          grid.appendChild(tile);
+        });
       } else {
+        headerTitle.textContent = currentTopic.title;
         headerActions.innerHTML = `
           <button onclick="goHome()">Ana Ekran</button>
-          <button onclick="togglePinCurrentTopic()">${currentTopic.pinned ? "Sabiti Kaldır" : "📌 Sabitle"}</button>
-          <button class="success" onclick="shareTopicWA()">WA Paylaş</button>
           <button class="primary" onclick="openNodeModal('${currentTopic.id}')">+ Madde</button>
-          <button class="danger" onclick="deleteCurrentTopic()">Sil</button>
         `;
 
         const trail = getNodeTrail(currentTopic, state.pathIds);
@@ -962,60 +1447,94 @@
               return `<span>/</span><span class="crumb ${isLast ? "current" : ""}" onclick="jumpTrail(${item.idx})">${escapeHtml(item.title)}</span>`;
             }).join("")}
           </div>
-
-          ${items.length ? items.map(n => renderNodeCard(n)).join("") : `<div class="empty-msg">Bu dalda henüz madde yok. <b>+ Madde</b> ile ekleyebilirsin.</div>`}
+          <div id="nodesList"></div>
         `;
+
+        const container = document.getElementById("nodesList");
+        if (!items.length) {
+          container.innerHTML = `<div class="empty-msg">Bu dalda henüz madde yok. <b>+ Madde</b> ile ekleyebilirsin.</div>`;
+        } else {
+          items.forEach(n => container.appendChild(buildNodeElement(n)));
+        }
       }
+    }
+
+    function buildNodeElement(node) {
+      const hasChildren = Array.isArray(node.children) && node.children.length > 0;
+      const isOpen = !!node.expanded;
+      const sortedChildren = hasChildren ? sortTr(node.children) : [];
+
+      const card = document.createElement("div");
+      card.className = "node-card";
+
+      const badges = [];
+      if (node.icon || node.customIcon) {
+        badges.push(`<span class="badge">${node.customIcon ? "🖼️ İkon" : escapeHtml(node.icon)}</span>`);
+      }
+      if (node.alarmAt) {
+        badges.push(`<span class="badge alarm">⏰ ${escapeHtml(node.alarmAt.replace("T", " "))}${node.alarmFired ? " ✓" : ""}</span>`);
+      }
+      if (node.audio) {
+        badges.push(`<span class="badge">🎙️ Ses</span>`);
+      }
+
+      card.innerHTML = `
+        <div class="node-header">
+          <button type="button" class="node-title-btn">
+            ${isOpen ? "▾" : "▸"} ${escapeHtml(node.title)} ${hasChildren ? `<span style="color:var(--muted);font-size:11.5px;">(${node.children.length})</span>` : ""}
+          </button>
+          <button type="button" onclick="drillIntoNode('${node.id}')">İçine Gir →</button>
+        </div>
+        ${badges.length ? `<div class="node-meta">${badges.join("")}</div>` : ""}
+        ${isOpen ? `
+          ${node.note ? `<div class="node-body">${escapeHtml(node.note)}</div>` : ""}
+          ${node.link ? `<a class="node-link" href="${escapeAttr(node.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(node.link)}</a>` : ""}
+          ${node.image ? `<img class="node-img" src="${escapeAttr(node.image)}" alt="" />` : ""}
+          ${node.audio ? `<audio class="node-audio" controls src="${escapeAttr(node.audio)}"></audio>` : ""}
+          <div class="children-box" id="children_${node.id}"></div>
+        ` : ""}
+      `;
+
+      const titleBtn = card.querySelector(".node-title-btn");
+      attachLongPress(
+        titleBtn,
+        () => openNodeLongPressMenu(node.id),
+        () => toggleExpand(node.id)
+      );
+
+      attachLongPress(
+        card,
+        () => openNodeLongPressMenu(node.id),
+        null
+      );
+
+      if (isOpen && sortedChildren.length) {
+        const childBox = card.querySelector(`#children_${node.id}`);
+        sortedChildren.forEach(ch => childBox.appendChild(buildNodeElement(ch)));
+      }
+
+      return card;
     }
 
     function jumpTrail(idx) {
       state.pathIds = state.pathIds.slice(0, idx + 1);
       render();
+      pushNavState(true);
     }
 
     function drillIntoNode(nodeId) {
       state.pathIds.push(nodeId);
       render();
+      pushNavState(true);
     }
 
-    function renderNodeCard(node) {
-      const hasChildren = Array.isArray(node.children) && node.children.length > 0;
-      const isOpen = !!node.expanded;
-      const sortedChildren = hasChildren ? sortTr(node.children) : [];
-
-      return `
-        <div class="node-card">
-          <div class="node-header">
-            <button class="node-title-btn" onclick="toggleExpand('${node.id}')">
-              ${isOpen ? "▾" : "▸"} ${escapeHtml(node.title)} ${hasChildren ? `<span style="color:var(--muted);font-size:12px;">(${node.children.length})</span>` : ""}
-            </button>
-            <button onclick="drillIntoNode('${node.id}')">İçine Gir →</button>
-          </div>
-
-          ${isOpen ? `
-            ${node.note ? `<div class="node-body">${escapeHtml(node.note)}</div>` : ""}
-            ${node.link ? `<a class="node-link" href="${escapeAttr(node.link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(node.link)}</a>` : ""}
-            ${node.image ? `<img class="node-img" src="${node.image}" alt="" />` : ""}
-
-            <div class="node-toolbar">
-              <button onclick="openNodeModal('${node.id}')">+ Alt Dal</button>
-              <button onclick="openNodeModal(null, '${node.id}')">Düzenle</button>
-              <button onclick="openMoveModal('${node.id}')">Taşı</button>
-              <button class="success" onclick="shareNodeWA('${node.id}')">WA</button>
-              <button class="danger" onclick="deleteNode('${node.id}')">Sil</button>
-            </div>
-
-            ${sortedChildren.length ? `
-              <div class="children-box">
-                ${sortedChildren.map(ch => renderNodeCard(ch)).join("")}
-              </div>
-            ` : ""}
-          ` : ""}
-        </div>
-      `;
-    }
-
-    render();
+    (async function boot() {
+      await initStorage();
+      render();
+      pushNavState(true);
+      await checkAlarms();
+      setInterval(checkAlarms, 15000);
+    })();
   </script>
 </body>
 </html>
